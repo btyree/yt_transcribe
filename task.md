@@ -17,7 +17,7 @@ Set up and configure YouTube API credentials and integrate the existing YouTube 
 - [x] Replace mock data in channel routes with YouTube API service calls (backend/app/api/routes/channels.py:21-45)
 - [x] Add error handling for YouTube API quota limits and failures (backend/app/services/youtube_api.py:85-120)
 - [x] Test basic API connectivity with sample channel using existing service methods
-- [ ] Automated test: Create test for YouTube API service with mock API responses
+- [x] Automated test: Create test for YouTube API service with mock API responses
 - [ ] User test: Verify channel URL input returns actual YouTube channel data
 
 ## Notes
