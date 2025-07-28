@@ -25,7 +25,7 @@ Based on the research and current project state, here's how I'll build the proje
 - [x] Create frontend/ directory structure with React + TypeScript + Vite feature-based architecture
 - [x] Set up Node.js dependencies and configuration (package.json, vite.config.ts, tsconfig.json)
 - [x] Configure development tooling for frontend (ESLint, Prettier, TypeScript)
-- [ ] Create basic API service layer and type definitions for backend integration
+- [x] Create basic API service layer and type definitions for backend integration
 - [ ] Set up database initialization and test both backend and frontend development servers
 - [ ] Automated test: Verify backend server starts and serves health endpoint
 - [ ] Automated test: Verify frontend development server starts and builds successfully
