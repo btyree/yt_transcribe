@@ -84,37 +84,54 @@ class YouTubeAPIService:
         Args:
             channel_id: YouTube channel ID
             max_results: Maximum number of videos to return
-            published_after: RFC 3339 formatted date-time
-            published_before: RFC 3339 formatted date-time
+            published_after: RFC 3339 formatted date-time (optional)
+            published_before: RFC 3339 formatted date-time (optional)
 
         Returns:
             List of video information dicts
         """
         try:
-            # First get the uploads playlist ID
-            channel_request = self.youtube.channels().list(
-                part="contentDetails", id=channel_id
-            )
-            channel_response = channel_request.execute()
+            # Use search API for date filtering, otherwise use playlist
+            if published_after or published_before:
+                # Use search endpoint for date filtering
+                search_params = {
+                    "part": "snippet",
+                    "channelId": channel_id,
+                    "type": "video",
+                    "order": "date",
+                    "maxResults": max_results,
+                }
 
-            if not channel_response["items"]:
-                return []
+                if published_after:
+                    search_params["publishedAfter"] = published_after
+                if published_before:
+                    search_params["publishedBefore"] = published_before
 
-            uploads_playlist_id = channel_response["items"][0]["contentDetails"][
-                "relatedPlaylists"
-            ]["uploads"]
+                request = self.youtube.search().list(**search_params)
+                response = request.execute()
+                return response.get("items", [])
+            else:
+                # Use uploads playlist for simple listing (more efficient)
+                channel_request = self.youtube.channels().list(
+                    part="contentDetails", id=channel_id
+                )
+                channel_response = channel_request.execute()
 
-            # Get videos from uploads playlist
-            playlist_request = self.youtube.playlistItems().list(
-                part="snippet",
-                playlistId=uploads_playlist_id,
-                maxResults=max_results,
-                publishedAfter=published_after,
-                publishedBefore=published_before,
-            )
-            playlist_response = playlist_request.execute()
+                if not channel_response["items"]:
+                    return []
 
-            return playlist_response.get("items", [])
+                uploads_playlist_id = channel_response["items"][0]["contentDetails"][
+                    "relatedPlaylists"
+                ]["uploads"]
+
+                playlist_request = self.youtube.playlistItems().list(
+                    part="snippet",
+                    playlistId=uploads_playlist_id,
+                    maxResults=max_results,
+                )
+                playlist_response = playlist_request.execute()
+
+                return playlist_response.get("items", [])
         except HttpError as e:
             print(f"Error fetching channel videos: {e}")
             return []
