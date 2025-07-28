@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { channelsService, CreateChannelRequest } from '../services/channels';
+import { channelsService, type CreateChannelRequest } from '../services/channels';
 
 export const useChannels = () => {
   return useQuery({
@@ -18,7 +18,7 @@ export const useChannel = (id: number) => {
 
 export const useCreateChannel = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateChannelRequest) =>
       channelsService.createChannel(data),
@@ -30,7 +30,7 @@ export const useCreateChannel = () => {
 
 export const useDeleteChannel = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number) => channelsService.deleteChannel(id),
     onSuccess: () => {

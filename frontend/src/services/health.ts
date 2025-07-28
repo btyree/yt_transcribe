@@ -1,6 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants/api';
-import { HealthResponse } from '../types/api';
+import { type HealthResponse } from '../types/api';
 
 export const healthService = {
   // Get detailed health information

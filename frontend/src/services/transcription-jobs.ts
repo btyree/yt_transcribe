@@ -1,6 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants/api';
-import { TranscriptionJob } from '../types/api';
+import { type TranscriptionJob } from '../types/api';
 
 export interface CreateTranscriptionJobRequest {
   video_id: number;

@@ -1,6 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants/api';
-import { Video } from '../types/api';
+import { type Video } from '../types/api';
 
 export const videosService = {
   // Get all videos

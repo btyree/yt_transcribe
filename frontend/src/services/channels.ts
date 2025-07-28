@@ -1,6 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants/api';
-import { Channel } from '../types/api';
+import { type Channel } from '../types/api';
 
 export interface CreateChannelRequest {
   url: string;

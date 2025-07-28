@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   transcriptionJobsService,
-  CreateTranscriptionJobRequest,
+  type CreateTranscriptionJobRequest,
 } from '../services/transcription-jobs';
 
 export const useTranscriptionJobs = () => {
@@ -21,7 +21,7 @@ export const useTranscriptionJob = (id: number) => {
 
 export const useCreateTranscriptionJob = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateTranscriptionJobRequest) =>
       transcriptionJobsService.createTranscriptionJob(data),
@@ -33,7 +33,7 @@ export const useCreateTranscriptionJob = () => {
 
 export const useStartTranscriptionJob = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number) =>
       transcriptionJobsService.startTranscriptionJob(id),
@@ -45,7 +45,7 @@ export const useStartTranscriptionJob = () => {
 
 export const useCancelTranscriptionJob = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number) =>
       transcriptionJobsService.cancelTranscriptionJob(id),

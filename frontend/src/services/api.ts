@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { API_BASE_URL } from '../constants/api';
 
 // Create axios instance with default configuration
@@ -32,7 +32,7 @@ const createApiClient = (): AxiosInstance => {
     },
     error => {
       console.error('API Response Error:', error);
-      
+
       // Handle common error scenarios
       if (error.response?.status === 401) {
         // Handle unauthorized access
@@ -41,7 +41,7 @@ const createApiClient = (): AxiosInstance => {
         // Handle server errors
         console.error('Server error - please try again later');
       }
-      
+
       return Promise.reject(error);
     },
   );
@@ -55,25 +55,25 @@ export const apiClient = createApiClient();
 export const api = {
   get: <T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> =>
     apiClient.get<T>(url, config),
-    
+
   post: <T>(
     url: string,
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> => apiClient.post<T>(url, data, config),
-  
+
   put: <T>(
     url: string,
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> => apiClient.put<T>(url, data, config),
-  
+
   patch: <T>(
     url: string,
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> => apiClient.patch<T>(url, data, config),
-  
+
   delete: <T>(
     url: string,
     config?: AxiosRequestConfig,
