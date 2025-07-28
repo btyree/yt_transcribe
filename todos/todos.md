@@ -3,7 +3,6 @@
 ## Foundation Phase
 
 ### YouTube API Setup
-- [ ] Install Python YouTube Data API client library
 - [ ] Create YouTube API credentials and configuration
 - [ ] Set up environment variables for API keys
 - [ ] Test basic API connectivity with sample channel
