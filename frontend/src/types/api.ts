@@ -31,7 +31,13 @@ export interface Video {
 export interface TranscriptionJob {
   id: number;
   video_id: number;
-  status: 'pending' | 'downloading' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  status:
+    | 'pending'
+    | 'downloading'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'cancelled';
   format: 'txt' | 'srt' | 'vtt';
   output_file_path?: string;
   error_message?: string;

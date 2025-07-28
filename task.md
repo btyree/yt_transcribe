@@ -24,7 +24,7 @@ Based on the research and current project state, here's how I'll build the proje
 - [x] Set up FastAPI application with basic configuration, CORS, and health endpoints
 - [x] Create frontend/ directory structure with React + TypeScript + Vite feature-based architecture
 - [x] Set up Node.js dependencies and configuration (package.json, vite.config.ts, tsconfig.json)
-- [ ] Configure development tooling for frontend (ESLint, Prettier, TypeScript)
+- [x] Configure development tooling for frontend (ESLint, Prettier, TypeScript)
 - [ ] Create basic API service layer and type definitions for backend integration
 - [ ] Set up database initialization and test both backend and frontend development servers
 - [ ] Automated test: Verify backend server starts and serves health endpoint
