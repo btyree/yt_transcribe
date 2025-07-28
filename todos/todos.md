@@ -3,11 +3,6 @@
 ## Phase 1: Foundation (Weeks 1-4)
 
 
-2. **YouTube Data API Integration**
-   - Set up OAuth 2.0 authentication flow using google-auth-oauthlib and google-api-python-client
-   - Implement channel URL validation with Python regex patterns for all supported formats (@username, /c/, /channel/, /user/)
-   - Create FastAPI service layer with Python httpx client for YouTube API calls with rate limiting and error handling
-   - Add channel metadata retrieval using YouTube Data API v3 Python SDK (name, subscriber count, video count)
 
 3. **Video Discovery System**
    - Implement video list retrieval from channel uploads playlist using Python YouTube Data API client
