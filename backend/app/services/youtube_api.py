@@ -167,5 +167,11 @@ class YouTubeAPIService:
             return []
 
 
-# Singleton instance
-youtube_api_service = YouTubeAPIService()
+# Singleton instance - initialize only when API key is available
+def get_youtube_api_service() -> YouTubeAPIService:
+    """Get YouTube API service instance."""
+    return YouTubeAPIService()
+
+
+# For backwards compatibility
+youtube_api_service = None
