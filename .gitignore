@@ -144,3 +144,4 @@ todos/done/*-analysis.md
 .local/
 local_config.py
 local_settings.json
+/todos/worktrees/
