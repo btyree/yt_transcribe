@@ -42,3 +42,6 @@ A personal productivity application that automates the transcription of YouTube 
 ## Testing
 **Not configured** - No testing framework chosen yet
 **Will need**: pytest for Python backend, Jest/Vitest for TypeScript/JS frontend, testing for API integrations, batch processing, file management, and UI components
+
+## Editor
+- Open folder: sesh-use

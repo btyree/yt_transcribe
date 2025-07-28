@@ -651,7 +651,7 @@ Query Parameters:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-01-28  
-**Author**: Product Requirements Team  
+**Document Version**: 1.0
+**Last Updated**: 2025-01-28
+**Author**: Product Requirements Team
 **Status**: Approved for Development

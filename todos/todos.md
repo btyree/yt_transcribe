@@ -2,11 +2,6 @@
 
 ## Phase 1: Foundation (Weeks 1-4)
 
-1. **Project Setup and Architecture Design**
-   - Initialize Python FastAPI backend with SQLAlchemy ORM and React/TypeScript frontend using Vite
-   - Set up development environment with proper tooling (ESLint, Prettier, TypeScript, pylint, black, mypy)
-   - Create basic folder structure separating backend/ (Python) and frontend/ (TypeScript/React) components
-   - Set up SQLite database with SQLAlchemy models (Channels, Videos, Transcription_Jobs tables)
 
 2. **YouTube Data API Integration**
    - Set up OAuth 2.0 authentication flow using google-auth-oauthlib and google-api-python-client
