@@ -1,12 +1,39 @@
 """
 YouTube Data API v3 service for channel and video information retrieval.
 """
+import logging
 from typing import Any
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class YouTubeAPIError(Exception):
+    """Base exception for YouTube API errors."""
+
+    pass
+
+
+class YouTubeQuotaExceededError(YouTubeAPIError):
+    """Raised when YouTube API quota is exceeded."""
+
+    pass
+
+
+class YouTubeAccessDeniedError(YouTubeAPIError):
+    """Raised when YouTube API access is denied."""
+
+    pass
+
+
+class YouTubeNotFoundError(YouTubeAPIError):
+    """Raised when requested YouTube resource is not found."""
+
+    pass
 
 
 class YouTubeAPIService:
@@ -24,6 +51,41 @@ class YouTubeAPIService:
             raise ValueError("YouTube API key is required")
 
         self.youtube = build("youtube", "v3", developerKey=self.api_key)
+
+    def _handle_http_error(self, error: HttpError, operation: str) -> None:
+        """
+        Handle HTTP errors from YouTube API and raise appropriate exceptions.
+
+        Args:
+            error: The HttpError from the YouTube API
+            operation: Description of the operation that failed
+        """
+        error_details = error.error_details if hasattr(error, 'error_details') else []
+        error_code = error.resp.status if hasattr(error, 'resp') else None
+        
+        logger.error(f"YouTube API error during {operation}: {error}")
+        
+        # Check for specific error reasons in error details
+        for detail in error_details:
+            reason = detail.get('reason', '').lower()
+            if reason in ['quotaexceeded', 'dailylimitexceeded', 'usageratelimitexceeded']:
+                raise YouTubeQuotaExceededError(f"YouTube API quota exceeded during {operation}: {detail.get('message', '')}")
+            elif reason in ['forbidden', 'accessnotconfigured']:
+                raise YouTubeAccessDeniedError(f"YouTube API access denied during {operation}: {detail.get('message', '')}")
+            elif reason in ['notfound', 'videonotfound', 'channelnotfound']:
+                raise YouTubeNotFoundError(f"YouTube resource not found during {operation}: {detail.get('message', '')}")
+        
+        # Fallback to HTTP status codes
+        if error_code == 403:
+            if 'quota' in str(error).lower():
+                raise YouTubeQuotaExceededError(f"YouTube API quota exceeded during {operation}")
+            else:
+                raise YouTubeAccessDeniedError(f"YouTube API access denied during {operation}")
+        elif error_code == 404:
+            raise YouTubeNotFoundError(f"YouTube resource not found during {operation}")
+        
+        # Generic error for other cases
+        raise YouTubeAPIError(f"YouTube API error during {operation}: {error}")
 
     async def get_channel_info(self, channel_id: str) -> dict[str, Any] | None:
         """
@@ -45,8 +107,8 @@ class YouTubeAPIService:
                 return response["items"][0]
             return None
         except HttpError as e:
-            print(f"Error fetching channel info: {e}")
-            return None
+            self._handle_http_error(e, "fetching channel info")
+            return None  # This line won't be reached due to exception
 
     async def get_channel_by_username(self, username: str) -> dict[str, Any] | None:
         """
@@ -59,17 +121,34 @@ class YouTubeAPIService:
             Channel information dict or None if not found
         """
         try:
+            # First try to search for the channel by name
+            search_request = self.youtube.search().list(
+                part="snippet",
+                q=f"@{username}",
+                type="channel",
+                maxResults=1
+            )
+            search_response = search_request.execute()
+            logger.debug(f"YouTube search response for @{username}: {search_response}")
+
+            if search_response.get("items"):
+                channel_id = search_response["items"][0]["snippet"]["channelId"]
+                # Now get the full channel info
+                return await self.get_channel_info(channel_id)
+            
+            # Fallback to the old forUsername method
             request = self.youtube.channels().list(
                 part="snippet,statistics,contentDetails", forUsername=username
             )
             response = request.execute()
+            logger.debug(f"YouTube API response for username {username}: {response}")
 
-            if response["items"]:
+            if response.get("items"):
                 return response["items"][0]
             return None
         except HttpError as e:
-            print(f"Error fetching channel by username: {e}")
-            return None
+            self._handle_http_error(e, "fetching channel by username")
+            return None  # This line won't be reached due to exception
 
     async def get_channel_videos(
         self,
@@ -133,8 +212,8 @@ class YouTubeAPIService:
 
                 return playlist_response.get("items", [])
         except HttpError as e:
-            print(f"Error fetching channel videos: {e}")
-            return []
+            self._handle_http_error(e, "fetching channel videos")
+            return []  # This line won't be reached due to exception
 
     async def get_video_details(self, video_id: str) -> dict[str, Any] | None:
         """
@@ -156,8 +235,8 @@ class YouTubeAPIService:
                 return response["items"][0]
             return None
         except HttpError as e:
-            print(f"Error fetching video details: {e}")
-            return None
+            self._handle_http_error(e, "fetching video details")
+            return None  # This line won't be reached due to exception
 
     async def search_channels(
         self, query: str, max_results: int = 10
@@ -180,8 +259,8 @@ class YouTubeAPIService:
 
             return response.get("items", [])
         except HttpError as e:
-            print(f"Error searching channels: {e}")
-            return []
+            self._handle_http_error(e, "searching channels")
+            return []  # This line won't be reached due to exception
 
 
 # Singleton instance - initialize only when API key is available
