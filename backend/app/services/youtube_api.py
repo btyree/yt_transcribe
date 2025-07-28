@@ -121,12 +121,29 @@ class YouTubeAPIService:
             Channel information dict or None if not found
         """
         try:
+            # First try to search for the channel by name
+            search_request = self.youtube.search().list(
+                part="snippet",
+                q=f"@{username}",
+                type="channel",
+                maxResults=1
+            )
+            search_response = search_request.execute()
+            logger.debug(f"YouTube search response for @{username}: {search_response}")
+
+            if search_response.get("items"):
+                channel_id = search_response["items"][0]["snippet"]["channelId"]
+                # Now get the full channel info
+                return await self.get_channel_info(channel_id)
+            
+            # Fallback to the old forUsername method
             request = self.youtube.channels().list(
                 part="snippet,statistics,contentDetails", forUsername=username
             )
             response = request.execute()
+            logger.debug(f"YouTube API response for username {username}: {response}")
 
-            if response["items"]:
+            if response.get("items"):
                 return response["items"][0]
             return None
         except HttpError as e:

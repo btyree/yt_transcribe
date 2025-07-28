@@ -1,7 +1,7 @@
 from typing import Any
 
-from pydantic import Field, validator
-from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -46,16 +46,19 @@ class Settings(BaseSettings):
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8000, description="Server port")
 
-    @validator("allowed_origins", pre=True)
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
     def parse_cors(cls, v: Any) -> list[str]:
         """Parse CORS origins from string or list."""
         if isinstance(v, str):
             return [i.strip() for i in v.split(",")]
         return v
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"
+    )
 
 
 settings = Settings()
