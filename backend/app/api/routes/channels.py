@@ -107,13 +107,10 @@ async def create_channel(
     Note: Without YouTube API key, only URL validation is performed.
     """
     try:
-        # For now, create a mock channel since we don't have API key configured
+        # Validate the YouTube channel URL format
         validation_result = await channel_service.validate_channel_url(request.url)
         if not validation_result["is_valid"]:
             raise ValueError(validation_result["error"])
-
-        # Create a basic channel record for testing (without YouTube API)
-        from app.domains.channels.models import Channel
 
         # Check if channel already exists by URL
         existing_channels = await channel_service.get_all_channels(db)
@@ -121,25 +118,63 @@ async def create_channel(
             if channel.url == validation_result["normalized_url"]:
                 raise ValueError(f"Channel already exists: {channel.title}")
 
-        # Create mock channel data for testing
-        mock_channel = Channel(
-            youtube_id=f"UC{validation_result['identifier'][:20]}",
-            title=f"Channel {validation_result['identifier']}",
-            description=f"YouTube channel for {validation_result['identifier']}",
+        # Use YouTube API to fetch real channel data
+        from app.domains.channels.models import Channel
+        from app.services.youtube_api import YouTubeAPIService
+
+        youtube_service = YouTubeAPIService()
+
+        # Get channel data from YouTube API based on URL type
+        channel_data = None
+        if validation_result["type"] == "username":
+            channel_data = await youtube_service.get_channel_by_username(
+                validation_result["identifier"]
+            )
+        elif validation_result["type"] == "channel_id":
+            channel_data = await youtube_service.get_channel_info(
+                validation_result["identifier"]
+            )
+        else:
+            # For c_format and user_format, we need to search by the identifier
+            # This is a limitation of the current YouTube API - these old formats are harder to resolve
+            raise ValueError(
+                f"URL format '{validation_result['type']}' requires manual conversion to channel ID"
+            )
+
+        if not channel_data:
+            raise ValueError(
+                "Channel not found or could not fetch channel data from YouTube API"
+            )
+
+        # Extract data from YouTube API response
+        snippet = channel_data.get("snippet", {})
+        statistics = channel_data.get("statistics", {})
+
+        # Create channel record with real YouTube data
+        new_channel = Channel(
+            youtube_id=channel_data["id"],
+            title=snippet.get("title", ""),
+            description=snippet.get("description", ""),
             url=validation_result["normalized_url"],
-            subscriber_count=1000,
-            video_count=50,
-            view_count=10000,
-            thumbnail_url="https://via.placeholder.com/400x400",
-            custom_url=validation_result.get("identifier"),
-            published_at="2020-01-01T00:00:00Z",
+            subscriber_count=int(statistics.get("subscriberCount", 0))
+            if statistics.get("subscriberCount")
+            else None,
+            video_count=int(statistics.get("videoCount", 0))
+            if statistics.get("videoCount")
+            else None,
+            view_count=int(statistics.get("viewCount", 0))
+            if statistics.get("viewCount")
+            else None,
+            thumbnail_url=snippet.get("thumbnails", {}).get("high", {}).get("url"),
+            custom_url=snippet.get("customUrl"),
+            published_at=snippet.get("publishedAt"),
         )
 
-        db.add(mock_channel)
+        db.add(new_channel)
         await db.commit()
-        await db.refresh(mock_channel)
+        await db.refresh(new_channel)
 
-        return ChannelResponse.model_validate(mock_channel)
+        return ChannelResponse.model_validate(new_channel)
 
     except ValueError as e:
         # Handle known validation and business logic errors
