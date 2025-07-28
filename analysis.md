@@ -51,7 +51,7 @@ yt-transcribe/
 **Existing**:
 - **`.gitignore`**: Comprehensive and well-structured, covering:
   - Python development (virtual environments, caches, build artifacts)
-  - Node.js/Frontend (node_modules, build files, package lock files)  
+  - Node.js/Frontend (node_modules, build files, package lock files)
   - Environment variables and secrets
   - Audio/video processing files
   - Database files
@@ -84,10 +84,10 @@ Based on the PRD and documentation, the planned structure should be:
 
 **Database**: SQLite with planned schema:
 - Channels table (channel metadata)
-- Videos table (video information)  
+- Videos table (video information)
 - Transcription_Jobs table (batch job tracking)
 
-**APIs**: 
+**APIs**:
 - YouTube Data API v3 integration
 - Deepgram Speech-to-Text API integration
 - Audio extraction via yt-dlp
@@ -310,8 +310,8 @@ class Channel(Base):
     last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        server_default=func.now(), 
+        DateTime(timezone=True),
+        server_default=func.now(),
         onupdate=func.now()
     )
 
@@ -350,15 +350,15 @@ class Video(Base):
     is_available: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        server_default=func.now(), 
+        DateTime(timezone=True),
+        server_default=func.now(),
         onupdate=func.now()
     )
 
     # Relationships
     channel: Mapped["Channel"] = relationship("Channel", back_populates="videos")
     transcription_jobs: Mapped[List["TranscriptionJob"]] = relationship(
-        "TranscriptionJob", 
+        "TranscriptionJob",
         back_populates="video"
     )
 
@@ -379,7 +379,7 @@ from src.database import Base
 
 class JobStatus(str, Enum):
     PENDING = "pending"
-    PROCESSING = "processing" 
+    PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -396,31 +396,31 @@ class TranscriptionJob(Base):
     video_id: Mapped[int] = mapped_column(ForeignKey("videos.id"), nullable=False)
     status: Mapped[JobStatus] = mapped_column(default=JobStatus.PENDING)
     output_formats: Mapped[List[OutputFormat]] = mapped_column(JSON, nullable=False)  # ["txt", "srt", "vtt"]
-    
+
     # Processing details
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     processing_duration: Mapped[Optional[int]] = mapped_column(nullable=True)  # seconds
-    
+
     # Results
     transcript_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     output_files: Mapped[Optional[Dict[str, str]]] = mapped_column(JSON, nullable=True)  # {"txt": "/path/file.txt"}
-    
+
     # Error handling
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     retry_count: Mapped[int] = mapped_column(default=0)
     max_retries: Mapped[int] = mapped_column(default=3)
-    
+
     # Metadata
     deepgram_request_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     audio_duration: Mapped[Optional[int]] = mapped_column(nullable=True)  # seconds
     word_count: Mapped[Optional[int]] = mapped_column(nullable=True)
     confidence_score: Mapped[Optional[float]] = mapped_column(nullable=True)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        server_default=func.now(), 
+        DateTime(timezone=True),
+        server_default=func.now(),
         onupdate=func.now()
     )
 
@@ -444,7 +444,7 @@ from src.config import settings
 # PostgreSQL naming conventions for better readability
 POSTGRES_INDEXES_NAMING_CONVENTION = {
     "ix": "%(column_0_label)s_idx",
-    "uq": "%(table_name)s_%(column_0_name)s_key", 
+    "uq": "%(table_name)s_%(column_0_name)s_key",
     "ck": "%(table_name)s_%(constraint_name)s_check",
     "fk": "%(table_name)s_%(column_0_name)s_fkey",
     "pk": "%(table_name)s_pkey"
@@ -493,32 +493,32 @@ from typing import Optional
 class Settings(BaseSettings):
     # Database
     DATABASE_URL: PostgresDsn
-    
+
     # API Keys
     YOUTUBE_API_KEY: str
     DEEPGRAM_API_KEY: str
-    
+
     # Application
     DEBUG: bool = False
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "YouTube Transcription API"
-    
+
     # File Storage
     STORAGE_PATH: str = "./storage"
     MAX_FILE_SIZE: int = 100 * 1024 * 1024  # 100MB
-    
+
     # Background Tasks
     REDIS_URL: str = "redis://localhost:6379"
     CELERY_BROKER_URL: str = "redis://localhost:6379"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379"
-    
+
     # Transcription Settings
     MAX_CONCURRENT_JOBS: int = 50
     JOB_TIMEOUT: int = 3600  # 1 hour
-    
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
-    
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -600,11 +600,11 @@ from src.channels.models import Channel
 class VideoService:
     def __init__(self, session: AsyncSession):
         self.session = session
-    
+
     async def get_videos_by_channel(
-        self, 
-        channel_id: int, 
-        limit: int = 50, 
+        self,
+        channel_id: int,
+        limit: int = 50,
         offset: int = 0
     ) -> list[Video]:
         stmt = (
@@ -617,7 +617,7 @@ class VideoService:
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
-    
+
     async def create_video(self, video_data: dict) -> Video:
         video = Video(**video_data)
         self.session.add(video)
@@ -1060,10 +1060,10 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { 
+        {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
-          ignoreRestSiblings: true 
+          ignoreRestSiblings: true
         }
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
@@ -1224,13 +1224,13 @@ import type { ApiResponse, TranscriptionRequest, TranscriptionResponse } from '@
 export const transcriptionApi = {
   create: (data: TranscriptionRequest): Promise<ApiResponse<TranscriptionResponse>> =>
     apiService.post('/api/transcriptions', data),
-  
+
   getById: (id: string): Promise<ApiResponse<TranscriptionResponse>> =>
     apiService.get(`/api/transcriptions/${id}`),
-  
+
   getAll: (): Promise<ApiResponse<TranscriptionResponse[]>> =>
     apiService.get('/api/transcriptions'),
-  
+
   delete: (id: string): Promise<ApiResponse<void>> =>
     apiService.delete(`/api/transcriptions/${id}`),
 }
