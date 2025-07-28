@@ -15,7 +15,9 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
+        exclude: ^alembic/
       - id: ruff-format
+        exclude: ^alembic/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
@@ -25,3 +27,4 @@ repos:
           - types-python-dateutil
           - types-requests
         args: [--ignore-missing-imports]
+        exclude: ^alembic/

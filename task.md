@@ -20,7 +20,7 @@ Based on the research and current project state, here's how I'll build the proje
 - [x] Create backend/ directory structure with FastAPI + SQLAlchemy domain-driven architecture
 - [x] Set up Python dependencies and configuration (pyproject.toml, requirements files, .env.example)
 - [x] Configure development tooling for Python (ruff, mypy, pre-commit hooks)
-- [ ] Create SQLAlchemy database models for Channels, Videos, and TranscriptionJobs tables
+- [x] Create SQLAlchemy database models for Channels, Videos, and TranscriptionJobs tables
 - [ ] Set up FastAPI application with basic configuration, CORS, and health endpoints
 - [ ] Create frontend/ directory structure with React + TypeScript + Vite feature-based architecture
 - [ ] Set up Node.js dependencies and configuration (package.json, vite.config.ts, tsconfig.json)
