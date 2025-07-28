@@ -120,31 +120,46 @@ async def create_channel(
 
         # Use YouTube API to fetch real channel data
         from app.domains.channels.models import Channel
-        from app.services.youtube_api import YouTubeAPIService
+        from app.services.youtube_api import (
+            YouTubeAPIService,
+            YouTubeQuotaExceededError,
+            YouTubeAccessDeniedError,
+            YouTubeNotFoundError,
+            YouTubeAPIError,
+        )
 
         youtube_service = YouTubeAPIService()
 
         # Get channel data from YouTube API based on URL type
-        channel_data = None
-        if validation_result["type"] == "username":
-            channel_data = await youtube_service.get_channel_by_username(
-                validation_result["identifier"]
-            )
-        elif validation_result["type"] == "channel_id":
-            channel_data = await youtube_service.get_channel_info(
-                validation_result["identifier"]
-            )
-        else:
-            # For c_format and user_format, we need to search by the identifier
-            # This is a limitation of the current YouTube API - these old formats are harder to resolve
-            raise ValueError(
-                f"URL format '{validation_result['type']}' requires manual conversion to channel ID"
-            )
+        try:
+            channel_data = None
+            if validation_result["type"] == "username":
+                channel_data = await youtube_service.get_channel_by_username(
+                    validation_result["identifier"]
+                )
+            elif validation_result["type"] == "channel_id":
+                channel_data = await youtube_service.get_channel_info(
+                    validation_result["identifier"]
+                )
+            else:
+                # For c_format and user_format, we need to search by the identifier
+                # This is a limitation of the current YouTube API - these old formats are harder to resolve
+                raise ValueError(
+                    f"URL format '{validation_result['type']}' requires manual conversion to channel ID"
+                )
 
-        if not channel_data:
-            raise ValueError(
-                "Channel not found or could not fetch channel data from YouTube API"
-            )
+            if not channel_data:
+                raise ValueError(
+                    "Channel not found or could not fetch channel data from YouTube API"
+                )
+        except YouTubeQuotaExceededError as e:
+            raise ValueError(f"YouTube API quota exceeded. Please try again later. Details: {str(e)}")
+        except YouTubeAccessDeniedError as e:
+            raise ValueError(f"YouTube API access denied. Please check API configuration. Details: {str(e)}")
+        except YouTubeNotFoundError as e:
+            raise ValueError(f"Channel not found on YouTube. Details: {str(e)}")
+        except YouTubeAPIError as e:
+            raise ValueError(f"YouTube API error occurred. Details: {str(e)}")
 
         # Extract data from YouTube API response
         snippet = channel_data.get("snippet", {})
