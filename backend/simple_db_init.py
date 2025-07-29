@@ -7,6 +7,8 @@ import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.db.base import Base
+# Import models so they're registered with Base.metadata
+from app.models import Channel, Video, TranscriptionJob
 
 
 async def init_db():

@@ -1,14 +1,16 @@
 # Project: YouTube Transcription Tool
-A personal productivity application that automates the transcription of YouTube videos from specific channels using AI-powered speech-to-text technology.
+A simple, single-user internal application that automates the transcription of YouTube videos from specific channels using AI-powered speech-to-text technology.
 
 ## Features
-- Channel-based video discovery from various YouTube URL formats
-- Bulk video selection with filtering by date range, duration, and search terms
-- Batch transcription processing (up to 50 videos simultaneously)
+- Simple channel-based video discovery from YouTube URLs
+- Video selection interface with basic filtering
+- Batch transcription processing
 - Multiple output formats: TXT, SRT, and VTT
-- Organized local file storage with structured folder hierarchy
-- Real-time progress tracking with retry mechanisms
+- Local file storage with simple organization
+- Basic progress tracking
 - Integration with YouTube Data API v3 and Deepgram Speech-to-Text API
+
+*Note: This is designed as a simple, single-user internal tool - prioritizing ease of use over complex features.*
 
 ## Tech Stack
 **Status**: Planning phase - no code implemented yet
@@ -28,7 +30,7 @@ A personal productivity application that automates the transcription of YouTube 
 - File management system for transcript organization
 
 ## Architecture
-**Planned**: TypeScript/JavaScript frontend with Python REST API backend, local SQLite database, and organized filesystem storage. Will support batch processing of up to 50 videos with parallel transcription jobs.
+**Planned**: Simple TypeScript/JavaScript frontend with Python REST API backend, lightweight local SQLite database, and straightforward filesystem storage. Designed for single-user simplicity rather than enterprise-scale complexity.
 
 ## Commands
 **None configured yet** - Project needs initialization

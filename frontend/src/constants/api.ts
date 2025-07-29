@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   // Channels
   CHANNELS: '/api/v1/channels',
   CHANNEL_BY_ID: (id: number) => `/api/v1/channels/${id}`,
+  VALIDATE_CHANNEL: '/api/v1/channels/validate',
 
   // Videos
   VIDEOS: '/api/v1/videos',

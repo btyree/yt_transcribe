@@ -1,34 +1,40 @@
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import { ChannelForm } from './components/ChannelForm';
+import type { Channel } from './types/api';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
+
+  const handleChannelCreated = (channel: Channel) => {
+    setCreatedChannel(channel);
+  };
 
   return (
-    <>
-      <div>
-        <a href='https://vite.dev' target='_blank'>
-          <img src={viteLogo} className='logo' alt='Vite logo' />
-        </a>
-        <a href='https://react.dev' target='_blank'>
-          <img src={reactLogo} className='logo react' alt='React logo' />
-        </a>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            YouTube Transcription Tool
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Add a YouTube channel to start transcribing videos
+          </p>
+        </div>
+
+        <ChannelForm onSuccess={handleChannelCreated} />
+
+        {createdChannel && (
+          <div className="max-w-md mx-auto mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
+              Channel Added Successfully!
+            </h3>
+            <p className="text-green-700 dark:text-green-300">
+              <strong>{createdChannel.title}</strong> has been added to your channels.
+            </p>
+          </div>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className='card'>
-        <button onClick={() => setCount(count => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className='read-the-docs'>
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   );
 }
 
