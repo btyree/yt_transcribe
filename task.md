@@ -18,6 +18,7 @@ How we are building it:
 - [x] Add form state management for URL input, validation, and submission
 - [x] Implement error handling and loading states for both validation and creation
 - [x] Display success message with channel details after successful creation
+- [x] Set up testing infrastructure (Vitest + React Testing Library) for component testing
 - [ ] Automated test: Create basic component test for ChannelForm
 - [ ] User test: Verify form validates URLs, creates channels, and displays feedback properly
 
