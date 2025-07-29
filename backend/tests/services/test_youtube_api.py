@@ -276,8 +276,8 @@ class TestYouTubeAPIService:
         result = await youtube_service.get_channel_videos("UC_test_channel_id")
 
         # Assertions
-        assert len(result) == 1
-        assert result[0]["snippet"]["title"] == "Test Video"
+        assert len(result["items"]) == 1
+        assert result["items"][0]["snippet"]["title"] == "Test Video"
 
     @pytest.mark.asyncio
     async def test_get_video_details_success(self, youtube_service, mock_youtube_client):
