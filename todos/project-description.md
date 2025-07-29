@@ -2,48 +2,64 @@
 A simple, single-user internal application that automates the transcription of YouTube videos from specific channels using AI-powered speech-to-text technology.
 
 ## Features
-- Simple channel-based video discovery from YouTube URLs
-- Video selection interface with basic filtering
+✅ **Implemented**:
+- Channel-based video discovery from YouTube URLs
+- Channel library with add/manage functionality
+- Video list display with metadata (title, duration, views, upload date)
+- Single video transcription via direct URL input
+- RESTful API with FastAPI backend
+- SQLite database for local data persistence
+- React frontend with TypeScript
+- Health checking and API integration
+- Job status tracking for transcription workflows
+
+🚧 **In Progress/Planned**:
 - Batch transcription processing
 - Multiple output formats: TXT, SRT, and VTT
-- Local file storage with simple organization
-- Basic progress tracking
-- Integration with YouTube Data API v3 and Deepgram Speech-to-Text API
+- Progress tracking for transcription jobs
+- File management for transcript organization
 
 *Note: This is designed as a simple, single-user internal tool - prioritizing ease of use over complex features.*
 
 ## Tech Stack
-**Status**: Planning phase - no code implemented yet
+**Status**: Core functionality implemented, transcription features in progress
 **Technologies**:
-- Frontend: TypeScript/JavaScript (React/Vue.js or Electron)
-- Backend: Python REST API
-- Database: SQLite for local data persistence
+- Frontend: React + TypeScript with Vite, TailwindCSS, React Query
+- Backend: FastAPI (Python) with uvicorn
+- Database: SQLite with SQLAlchemy ORM
 - APIs: YouTube Data API v3, Deepgram Speech-to-Text API
-- Audio Processing: youtube-dl/yt-dlp
+- Audio Processing: yt-dlp + ffmpeg
 
 ## Structure
-**Current**: Only PRD.md exists in repository
-**Planned Structure**:
-- Frontend components for channel input and video selection
-- Backend API modules for YouTube and Deepgram integration
-- Database layer for job tracking and metadata
-- File management system for transcript organization
+**Current Implementation**:
+- Frontend: React components for channel/video management, modern UI with Catalyst components
+- Backend: FastAPI with modular route structure (health, channels, videos, transcription)
+- Database: SQLAlchemy models for channels, videos, transcription jobs
+- Services: YouTube API integration, video discovery, transcription service
+- File storage: Local filesystem for video/audio/transcript files
 
 ## Architecture
-**Planned**: Simple TypeScript/JavaScript frontend with Python REST API backend, lightweight local SQLite database, and straightforward filesystem storage. Designed for single-user simplicity rather than enterprise-scale complexity.
+**Current**: React/TypeScript frontend communicating with FastAPI backend via REST APIs. SQLite database handles metadata and job tracking. Local filesystem storage for media files. Simple, maintainable architecture optimized for single-user operation.
 
 ## Commands
-**None configured yet** - Project needs initialization
-**Will need**:
-- Frontend Build: npm run build / yarn build
-- Backend: python -m uvicorn main:app --reload (FastAPI) or flask run
-- Test: pytest (Python), npm test (TypeScript/JS)
-- Lint: pylint/black (Python), eslint/prettier (TypeScript/JS)
-- Dev: Concurrent frontend and backend development servers
+**Backend**:
+- Start: `cd backend && python run.py` (starts FastAPI with uvicorn)
+- Database init: `cd backend && python simple_db_init.py`
+- Test: `cd backend && python -m pytest tests/`
+- Lint: `cd backend && ruff check .` and `ruff format .`
+
+**Frontend**:
+- Start: `cd frontend && npm run dev` (Vite dev server)
+- Build: `cd frontend && npm run build`
+- Test: `cd frontend && npm run test` (Vitest)
+- Lint: `cd frontend && npm run lint` (ESLint + Prettier)
+- Type check: `cd frontend && npm run type-check`
 
 ## Testing
-**Not configured** - No testing framework chosen yet
-**Will need**: pytest for Python backend, Jest/Vitest for TypeScript/JS frontend, testing for API integrations, batch processing, file management, and UI components
+**Configured**:
+- Backend: pytest with async support, integration tests for YouTube API
+- Frontend: Vitest + React Testing Library + jsdom
+- Test coverage includes API routes, service functions, and React components
 
 ## Editor
 - Open folder: sesh connect

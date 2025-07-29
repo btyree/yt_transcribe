@@ -29,4 +29,6 @@
 - [ ] Simple environment configuration for API keys
 - [ ] Basic error handling and user feedback
 
+## Transcription Bug Fix
+
 ## Code Quality
