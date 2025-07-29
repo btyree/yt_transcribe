@@ -73,66 +73,61 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <Heading className="mb-6">Add YouTube Channel</Heading>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Field>
-          <Label>YouTube Channel URL</Label>
-          <div className="relative">
-            <Input
-              type="url"
-              name="channel-url"
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                setSubmitError(null);
-              }}
-              placeholder="https://www.youtube.com/@channelname"
-              invalid={validationResult?.is_valid === false}
-              required
-            />
-            {isValidating && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-              </div>
-            )}
-          </div>
-          
-          {validationResult?.is_valid === true && (
-            <Description>{validationResult.message}</Description>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Field>
+        <Label className="text-sm font-medium text-zinc-900">YouTube Channel URL</Label>
+        <div className="relative">
+          <Input
+            type="url"
+            name="channel-url"
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setSubmitError(null);
+            }}
+            placeholder="https://www.youtube.com/@channelname"
+            invalid={validationResult?.is_valid === false}
+            required
+            className="mt-1"
+          />
+          {isValidating && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin h-4 w-4 border-2 border-zinc-500 border-t-transparent rounded-full"></div>
+            </div>
           )}
-          
-          {validationResult?.is_valid === false && (
-            <ErrorMessage>{validationResult.message}</ErrorMessage>
-          )}
-        </Field>
+        </div>
         
-        <Button
-          type="submit"
-          color="indigo"
-          disabled={
-            createChannelMutation.isPending || 
-            !url.trim() || 
-            isValidating || 
-            !validationResult?.is_valid
-          }
-          className="w-full"
-        >
-          {createChannelMutation.isPending 
-            ? 'Adding Channel...' 
-            : isValidating 
-            ? 'Validating...' 
-            : 'Add Channel'
-          }
-        </Button>
-        
-        {submitError && (
-          <Field>
-            <ErrorMessage>{submitError}</ErrorMessage>
-          </Field>
+        {validationResult?.is_valid === true && (
+          <Description className="text-green-600 text-sm mt-1">{validationResult.message}</Description>
         )}
-      </form>
-    </div>
+        
+        {validationResult?.is_valid === false && (
+          <ErrorMessage className="text-red-600 text-sm mt-1">{validationResult.message}</ErrorMessage>
+        )}
+      </Field>
+      
+      <Button
+        type="submit"
+        color="dark"
+        disabled={
+          createChannelMutation.isPending || 
+          !url.trim() || 
+          isValidating || 
+          !validationResult?.is_valid
+        }
+        className="w-full"
+      >
+        {createChannelMutation.isPending 
+          ? 'Adding Channel...' 
+          : isValidating 
+          ? 'Validating...' 
+          : 'Add Channel'
+        }
+      </Button>
+      
+      {submitError && (
+        <ErrorMessage className="text-red-600 text-sm">{submitError}</ErrorMessage>
+      )}
+    </form>
   );
 }

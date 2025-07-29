@@ -56,6 +56,7 @@ export interface TranscriptionJob {
   completed_at?: string;
   created_at: string;
   updated_at: string;
+  video?: Video & { channel?: Channel };
 }
 
 export interface HealthResponse {

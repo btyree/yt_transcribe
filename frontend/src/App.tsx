@@ -2,92 +2,121 @@ import { useState } from 'react';
 import { ChannelForm } from './components/ChannelForm';
 import { VideoList } from './components/VideoList';
 import { SingleVideoForm } from './components/SingleVideoForm';
+import { ChannelLibrary } from './components/ChannelLibrary';
+import { TranscribedVideos } from './components/TranscribedVideos';
 import { useChannels } from './hooks/useChannels';
 import { Button } from './components/catalyst/button';
 import type { Channel } from './types/api';
 
-type WorkflowTab = 'channel' | 'single-video';
+type WorkflowTab = 'channels' | 'transcribed' | 'single-video';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<WorkflowTab>('channel');
-  const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
+  const [activeTab, setActiveTab] = useState<WorkflowTab>('channels');
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const { data: existingChannels } = useChannels();
 
-  const handleChannelCreated = (channel: Channel) => {
-    setCreatedChannel(channel);
+  const handleChannelSelected = (channel: Channel) => {
+    setSelectedChannel(channel);
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-8">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
-            YouTube Transcription Tool
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Choose your transcription workflow
-          </p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="max-w-md mx-auto mb-8">
-          <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
-            <Button
-              onClick={() => setActiveTab('channel')}
-              color={activeTab === 'channel' ? 'blue' : 'zinc'}
-              className={`flex-1 text-sm ${activeTab === 'channel' ? '' : 'bg-transparent'}`}
-            >
-              Channel Workflow
-            </Button>
-            <Button
-              onClick={() => setActiveTab('single-video')}
-              color={activeTab === 'single-video' ? 'blue' : 'zinc'}
-              className={`flex-1 text-sm ${activeTab === 'single-video' ? '' : 'bg-transparent'}`}
-            >
-              Single Video
-            </Button>
+    <div className="min-h-screen bg-white">
+      {/* Swiss-style header with grid system */}
+      <header className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto max-w-7xl px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-light tracking-tight text-zinc-900">
+                YouTube Transcription
+              </h1>
+              <p className="text-sm text-zinc-500 mt-1">
+                Efficiently transcribe and organize video content
+              </p>
+            </div>
+            <div className="flex items-center space-x-1 bg-zinc-100 rounded-lg p-1">
+              <Button
+                onClick={() => setActiveTab('channels')}
+                color={activeTab === 'channels' ? 'dark' : 'zinc'}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'channels' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
+              >
+                Channels
+              </Button>
+              <Button
+                onClick={() => setActiveTab('transcribed')}
+                color={activeTab === 'transcribed' ? 'dark' : 'zinc'}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'transcribed' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
+              >
+                Transcribed
+              </Button>
+              <Button
+                onClick={() => setActiveTab('single-video')}
+                color={activeTab === 'single-video' ? 'dark' : 'zinc'}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'single-video' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
+              >
+                Single Video
+              </Button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Channel Workflow */}
-        {activeTab === 'channel' && (
-          <>
-            <ChannelForm onSuccess={handleChannelCreated} />
-
-            {createdChannel && (
-              <>
-                <div className="max-w-md mx-auto mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                  <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-                    Channel Added Successfully!
+      {/* Main content area */}
+      <main className="mx-auto max-w-7xl px-8 py-8">
+        {/* Channels Tab */}
+        {activeTab === 'channels' && (
+          <div className="grid grid-cols-12 gap-8">
+            {/* Left sidebar - Channel library */}
+            <div className="col-span-4">
+              <ChannelLibrary
+                channels={existingChannels || []}
+                onChannelSelect={handleChannelSelected}
+                selectedChannel={selectedChannel}
+              />
+            </div>
+            
+            {/* Right content - Video list or empty state */}
+            <div className="col-span-8">
+              {selectedChannel ? (
+                <VideoList channel={selectedChannel} />
+              ) : (
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-zinc-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-zinc-900 mb-2">
+                    Select a channel to view videos
                   </h3>
-                  <p className="text-green-700 dark:text-green-300">
-                    <strong>{createdChannel.title}</strong> has been added to your channels.
+                  <p className="text-zinc-500 mb-6">
+                    Choose a channel from the library or add a new one to get started.
                   </p>
                 </div>
-                
-                <VideoList channel={createdChannel} />
-              </>
-            )}
-
-            {/* Show existing channels */}
-            {existingChannels && existingChannels.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-6">
-                  Existing Channels
-                </h2>
-                {existingChannels.map((channel) => (
-                  <VideoList key={channel.id} channel={channel} />
-                ))}
-              </div>
-            )}
-          </>
+              )}
+            </div>
+          </div>
         )}
 
-        {/* Single Video Workflow */}
+        {/* Transcribed Videos Tab */}
+        {activeTab === 'transcribed' && (
+          <TranscribedVideos />
+        )}
+
+        {/* Single Video Tab */}
         {activeTab === 'single-video' && (
-          <SingleVideoForm />
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-8">
+              <h2 className="text-xl font-medium text-zinc-900 mb-2">
+                Transcribe Single Video
+              </h2>
+              <p className="text-zinc-500">
+                Enter a YouTube video URL to transcribe it directly without adding to a channel.
+              </p>
+            </div>
+            <SingleVideoForm />
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
