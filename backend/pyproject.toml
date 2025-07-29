@@ -8,31 +8,17 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "sqlalchemy>=2.0.0",
-    "alembic>=1.12.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "python-multipart>=0.0.6",
     "httpx>=0.25.0",
-    "yt-dlp>=2023.11.16",
-    "deepgram-sdk>=3.2.0",
     "python-dotenv>=1.0.0",
     "aiosqlite>=0.19.0",
     "google-api-python-client>=2.177.0",
     "google-auth-oauthlib>=1.2.2",
     "google-auth-httplib2>=0.2.0",
-    "greenlet>=3.2.3",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.1.0",
-    "ruff>=0.1.6",
-    "mypy>=1.7.0",
-    "pre-commit>=3.5.0",
-    "httpx>=0.25.0",
-]
 
 [build-system]
 requires = ["hatchling"]
@@ -44,7 +30,6 @@ packages = ["app"]
 [tool.ruff]
 target-version = "py311"
 line-length = 88
-exclude = ["*/alembic/*", "alembic/**/*.py"]
 
 [tool.ruff.lint]
 select = [
@@ -75,7 +60,6 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 strict_equality = true
-exclude = ["*/alembic/*", "alembic/**/*.py", "alembic/versions/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -88,7 +72,6 @@ asyncio_mode = "auto"
 [dependency-groups]
 dev = [
     "mypy>=1.17.0",
-    "pre-commit>=4.2.0",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "ruff>=0.12.5",
