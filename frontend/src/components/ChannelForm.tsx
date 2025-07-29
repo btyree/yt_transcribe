@@ -10,7 +10,6 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
   const [url, setUrl] = useState('');
   const [validationResult, setValidationResult] = useState<ChannelValidationResponse | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   
   const createChannelMutation = useCreateChannel();
@@ -20,21 +19,18 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
   useEffect(() => {
     if (!url.trim()) {
       setValidationResult(null);
-      setValidationError(null);
       return;
     }
 
     const timeoutId = setTimeout(async () => {
       setIsValidating(true);
-      setValidationError(null);
       try {
         const result = await validateChannelMutation.mutateAsync(url.trim());
         setValidationResult(result);
-      } catch (error: any) {
-        const errorMessage = error?.response?.data?.detail || 
-                           error?.message || 
+      } catch (error: unknown) {
+        const errorMessage = (error as any)?.response?.data?.detail || 
+                           (error as any)?.message || 
                            'Failed to validate URL';
-        setValidationError(errorMessage);
         setValidationResult({
           is_valid: false,
           message: errorMessage,
@@ -62,12 +58,11 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
       const channel = await createChannelMutation.mutateAsync({ url: url.trim() });
       setUrl('');
       setValidationResult(null);
-      setValidationError(null);
       setSubmitError(null);
       onSuccess?.(channel);
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail || 
-                         error?.message || 
+    } catch (error: unknown) {
+      const errorMessage = (error as any)?.response?.data?.detail || 
+                         (error as any)?.message || 
                          'Failed to create channel';
       setSubmitError(errorMessage);
     }
