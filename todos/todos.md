@@ -2,18 +2,7 @@
 
 ## Foundation Phase
 
-### YouTube API Setup
-- [ ] Create YouTube API credentials and configuration
-- [ ] Set up environment variables for API keys
-- [ ] Test basic API connectivity with sample channel
 
-### Video Discovery Backend
-- [ ] Create Pydantic model for video metadata (title, duration, upload_date, view_count)
-- [ ] Implement channel uploads playlist retrieval function
-- [ ] Add async function to fetch video list with 50-video pagination
-- [ ] Create video metadata parsing service
-- [ ] Add error handling for invalid channel URLs
-- [ ] Test video discovery with various channel types
 
 ### Video Discovery API Endpoints
 - [ ] Create FastAPI endpoint for channel video retrieval

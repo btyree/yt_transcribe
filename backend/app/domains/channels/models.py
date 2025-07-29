@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import DateTime, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
@@ -31,7 +31,8 @@ class Channel(Base):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-    # Note: Video relationships will be added in Video Discovery System phase
+    # Relationships
+    videos: Mapped[list[Video]] = relationship("Video", back_populates="channel")
 
     def __repr__(self) -> str:
         return f"<Channel(id={self.id}, title='{self.title}')>"

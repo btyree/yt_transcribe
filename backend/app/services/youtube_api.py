@@ -156,18 +156,20 @@ class YouTubeAPIService:
         max_results: int = 50,
         published_after: str | None = None,
         published_before: str | None = None,
-    ) -> list[dict[str, Any]]:
+        page_token: str | None = None,
+    ) -> dict[str, Any]:
         """
-        Get videos from a channel.
+        Get videos from a channel with pagination support.
 
         Args:
             channel_id: YouTube channel ID
-            max_results: Maximum number of videos to return
+            max_results: Maximum number of videos to return (max 50)
             published_after: RFC 3339 formatted date-time (optional)
             published_before: RFC 3339 formatted date-time (optional)
+            page_token: Token for pagination (optional)
 
         Returns:
-            List of video information dicts
+            Dict containing 'items' (list of videos) and 'nextPageToken' (if available)
         """
         try:
             # Use search API for date filtering, otherwise use playlist
@@ -185,10 +187,16 @@ class YouTubeAPIService:
                     search_params["publishedAfter"] = published_after
                 if published_before:
                     search_params["publishedBefore"] = published_before
+                if page_token:
+                    search_params["pageToken"] = page_token
 
                 request = self.youtube.search().list(**search_params)
                 response = request.execute()
-                return response.get("items", [])
+                
+                return {
+                    "items": response.get("items", []),
+                    "nextPageToken": response.get("nextPageToken")
+                }
             else:
                 # Use uploads playlist for simple listing (more efficient)
                 channel_request = self.youtube.channels().list(
@@ -197,23 +205,59 @@ class YouTubeAPIService:
                 channel_response = channel_request.execute()
 
                 if not channel_response["items"]:
-                    return []
+                    return {"items": [], "nextPageToken": None}
 
                 uploads_playlist_id = channel_response["items"][0]["contentDetails"][
                     "relatedPlaylists"
                 ]["uploads"]
 
-                playlist_request = self.youtube.playlistItems().list(
-                    part="snippet",
-                    playlistId=uploads_playlist_id,
-                    maxResults=max_results,
-                )
+                playlist_params = {
+                    "part": "snippet",
+                    "playlistId": uploads_playlist_id,
+                    "maxResults": max_results,
+                }
+                
+                if page_token:
+                    playlist_params["pageToken"] = page_token
+
+                playlist_request = self.youtube.playlistItems().list(**playlist_params)
                 playlist_response = playlist_request.execute()
 
-                return playlist_response.get("items", [])
+                return {
+                    "items": playlist_response.get("items", []),
+                    "nextPageToken": playlist_response.get("nextPageToken")
+                }
         except HttpError as e:
             self._handle_http_error(e, "fetching channel videos")
-            return []  # This line won't be reached due to exception
+            return {"items": [], "nextPageToken": None}  # This line won't be reached due to exception
+
+    async def get_channel_uploads_playlist(self, channel_id: str) -> str | None:
+        """
+        Get the uploads playlist ID for a channel.
+        
+        Args:
+            channel_id: YouTube channel ID
+            
+        Returns:
+            Uploads playlist ID or None if not found
+        """
+        try:
+            request = self.youtube.channels().list(
+                part="contentDetails", id=channel_id
+            )
+            response = request.execute()
+            
+            if not response["items"]:
+                return None
+                
+            uploads_playlist_id = response["items"][0]["contentDetails"][
+                "relatedPlaylists"
+            ]["uploads"]
+            
+            return uploads_playlist_id
+        except HttpError as e:
+            self._handle_http_error(e, "fetching channel uploads playlist")
+            return None  # This line won't be reached due to exception
 
     async def get_video_details(self, video_id: str) -> dict[str, Any] | None:
         """
