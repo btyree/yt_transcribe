@@ -1,18 +1,27 @@
 # Simplify the current codebase
-**Status:** Refining
+**Status:** InProgress
 **Agent PID:** 49427
 
 ## Original Todo
 Simplify the current codebase
 
 ## Description
-[what we're building]
+Simplify the current codebase by removing over-engineering and unnecessary complexity. The codebase currently has enterprise-level infrastructure patterns for a personal transcription tool, with duplicate configuration systems, unused dependencies, excessive abstractions, and complex database migrations for a simple SQLite database. The goal is to streamline the codebase to match its actual scope while preserving the working YouTube API integration.
 
 ## Implementation Plan
-[how we are building it]
-- [ ] Code change with location(s) if applicable (src/file.ts:45-93)
-- [ ] Automated test: ...
-- [ ] User test: ...
+How we are building it:
+- [ ] Remove pre-commit hooks configuration
+- [ ] Clean up unused dependencies from pyproject.toml (yt-dlp, deepgram-sdk, greenlet)
+- [ ] Remove Alembic migration system and files (use simple database creation)
+- [ ] Consolidate domain architecture (merge models into single models.py)
+- [ ] Remove redundant entry points (keep only run.py, remove main.py and quick_setup.py)
+- [ ] Remove placeholder transcription job routes until actual implementation needed
+- [ ] Consolidate duplicate dev dependencies in pyproject.toml
+- [ ] Remove root-level test files (keep only tests/ directory structure)
+- [ ] Simplify TypeScript configuration (single tsconfig.json)
+- [ ] Update imports and dependencies after consolidation
+- [ ] Test that YouTube API functionality still works after simplification
+- [ ] User test: Verify backend starts and can fetch YouTube channel data
 
 ## Notes
 [Implementation notes]
