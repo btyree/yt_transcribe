@@ -45,4 +45,14 @@ export const transcriptionJobsService = {
     );
     return response.data;
   },
+
+  // Retry transcription job
+  retryTranscriptionJob: async (
+    id: number,
+  ): Promise<TranscriptionJob> => {
+    const response = await api.post<TranscriptionJob>(
+      `${API_ENDPOINTS.TRANSCRIPTION_JOB_BY_ID(id)}/retry`,
+    );
+    return response.data;
+  },
 };

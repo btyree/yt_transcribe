@@ -43,6 +43,18 @@ export const useCancelTranscriptionJob = () => {
   });
 };
 
+export const useRetryTranscriptionJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      transcriptionJobsService.retryTranscriptionJob(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transcription-jobs'] });
+    },
+  });
+};
+
 export const useTranscriptionJobStatus = (id: number) => {
   return useQuery({
     queryKey: ['transcription-jobs', id],

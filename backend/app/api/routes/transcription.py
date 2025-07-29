@@ -84,27 +84,33 @@ class VideoTranscriptionInfo(BaseModel):
         from_attributes = True
 
 
-async def background_transcribe(job_id: int) -> None:
+def background_transcribe(job_id: int) -> None:
     """Background task to process transcription job."""
-    try:
-        # Create a new database session for the background task
-        async for db in get_db():
-            # Get job and video
-            result = await db.execute(
-                select(TranscriptionJob)
-                .options(selectinload(TranscriptionJob.video))
-                .where(TranscriptionJob.id == job_id)
-            )
-            job = result.scalar_one_or_none()
+    import asyncio
+    from app.db.base import AsyncSessionLocal
+    
+    async def process_job():
+        try:
+            # Create a new database session for the background task
+            async with AsyncSessionLocal() as db:
+                # Get job and video
+                result = await db.execute(
+                    select(TranscriptionJob)
+                    .options(selectinload(TranscriptionJob.video))
+                    .where(TranscriptionJob.id == job_id)
+                )
+                job = result.scalar_one_or_none()
 
-            if not job:
-                return
+                if not job:
+                    return
 
-            await transcription_service.process_transcription_job(job, job.video, db)
-            break  # Exit after processing
+                await transcription_service.process_transcription_job(job, job.video, db)
 
-    except Exception as e:
-        print(f"Background transcription failed for job {job_id}: {e}")
+        except Exception as e:
+            print(f"Background transcription failed for job {job_id}: {e}")
+    
+    # Run the async function synchronously
+    asyncio.run(process_job())
 
 
 @router.post("/jobs", response_model=TranscriptionJobResponse)
@@ -219,6 +225,47 @@ async def cancel_transcription_job(
     await db.commit()
 
     return {"message": "Job cancelled successfully"}
+
+
+@router.post("/jobs/{job_id}/retry", response_model=TranscriptionJobResponse)
+async def retry_transcription_job(
+    job_id: int,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+):
+    """Retry a failed transcription job."""
+    result = await db.execute(
+        select(TranscriptionJob)
+        .options(selectinload(TranscriptionJob.video))
+        .where(TranscriptionJob.id == job_id)
+    )
+    job = result.scalar_one_or_none()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Transcription job not found")
+
+    if job.status not in [JobStatus.FAILED, JobStatus.CANCELLED]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot retry job with status: {job.status}. Only failed or cancelled jobs can be retried."
+        )
+
+    # Reset job to pending state
+    job.status = JobStatus.PENDING
+    job.error_message = None
+    job.progress_percentage = 0
+    job.started_at = None
+    job.completed_at = None
+    job.transcript_content = None
+    job.deepgram_response = None
+    
+    await db.commit()
+    await db.refresh(job)
+
+    # Start background transcription
+    background_tasks.add_task(background_transcribe, job.id)
+
+    return job
 
 
 @router.get("/videos/{video_id}", response_model=VideoTranscriptionInfo)

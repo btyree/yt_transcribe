@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useTranscriptionJobs } from '../hooks/useTranscriptionJobs';
+import { useTranscriptionJobs, useCancelTranscriptionJob, useRetryTranscriptionJob } from '../hooks/useTranscriptionJobs';
 import { useChannels } from '../hooks/useChannels';
 import { Input } from './catalyst/input';
 import { Button } from './catalyst/button';
@@ -14,13 +14,17 @@ import {
   CheckCircleIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
-  XCircleIcon
+  XCircleIcon,
+  TrashIcon,
+  ArrowUturnLeftIcon
 } from '@heroicons/react/16/solid';
 import type { TranscriptionJob } from '../types/api';
 
 export function TranscribedVideos() {
   const { data: transcriptionJobs, isLoading, error } = useTranscriptionJobs();
   const { data: channels } = useChannels();
+  const cancelJob = useCancelTranscriptionJob();
+  const retryJob = useRetryTranscriptionJob();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
@@ -150,6 +154,32 @@ export function TranscribedVideos() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Failed to download transcription:', error);
+    }
+  };
+
+  const handleCancel = async (job: TranscriptionJob) => {
+    if (!confirm(`Are you sure you want to cancel the transcription for "${job.video?.title}"?`)) {
+      return;
+    }
+    
+    try {
+      await cancelJob.mutateAsync(job.id);
+    } catch (error) {
+      console.error('Failed to cancel transcription job:', error);
+      alert('Failed to cancel transcription job. Please try again.');
+    }
+  };
+
+  const handleRetry = async (job: TranscriptionJob) => {
+    if (!confirm(`Are you sure you want to retry the transcription for "${job.video?.title}"?`)) {
+      return;
+    }
+    
+    try {
+      await retryJob.mutateAsync(job.id);
+    } catch (error) {
+      console.error('Failed to retry transcription job:', error);
+      alert('Failed to retry transcription job. Please try again.');
     }
   };
 
@@ -329,6 +359,30 @@ export function TranscribedVideos() {
                           >
                             <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
                             Download
+                          </Button>
+                        )}
+                        
+                        {job.status === 'pending' && (
+                          <Button
+                            onClick={() => handleCancel(job)}
+                            color="red"
+                            className="text-sm px-3 py-1"
+                            disabled={cancelJob.isPending}
+                          >
+                            <TrashIcon className="w-4 h-4 mr-2" />
+                            {cancelJob.isPending ? 'Cancelling...' : 'Cancel'}
+                          </Button>
+                        )}
+                        
+                        {(job.status === 'failed' || job.status === 'cancelled') && (
+                          <Button
+                            onClick={() => handleRetry(job)}
+                            color="blue"
+                            className="text-sm px-3 py-1"
+                            disabled={retryJob.isPending}
+                          >
+                            <ArrowUturnLeftIcon className="w-4 h-4 mr-2" />
+                            {retryJob.isPending ? 'Retrying...' : 'Retry'}
                           </Button>
                         )}
                         
