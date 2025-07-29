@@ -1,11 +1,28 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
+from pydantic import BaseModel
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+
+class VideoMetadata(BaseModel):
+    """Pydantic model for video metadata response."""
+    
+    youtube_id: str
+    title: str
+    duration_seconds: Optional[int] = None
+    upload_date: Optional[datetime] = None
+    view_count: Optional[int] = None
+    thumbnail_url: Optional[str] = None
+    url: str
+
+    class Config:
+        from_attributes = True
 
 
 class Video(Base):
