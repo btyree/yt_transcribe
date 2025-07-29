@@ -1,5 +1,5 @@
 # Simple channel input form in frontend
-**Status:** AwaitingCommit
+**Status:** Done
 **Agent PID:** 33677
 
 ## Original Todo
