@@ -10,6 +10,8 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
   const [url, setUrl] = useState('');
   const [validationResult, setValidationResult] = useState<ChannelValidationResponse | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const createChannelMutation = useCreateChannel();
   const validateChannelMutation = useValidateChannel();
@@ -18,20 +20,26 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
   useEffect(() => {
     if (!url.trim()) {
       setValidationResult(null);
+      setValidationError(null);
       return;
     }
 
     const timeoutId = setTimeout(async () => {
       setIsValidating(true);
+      setValidationError(null);
       try {
         const result = await validateChannelMutation.mutateAsync(url.trim());
         setValidationResult(result);
-      } catch (error) {
+      } catch (error: any) {
+        const errorMessage = error?.response?.data?.detail || 
+                           error?.message || 
+                           'Failed to validate URL';
+        setValidationError(errorMessage);
         setValidationResult({
           is_valid: false,
-          message: 'Failed to validate URL',
+          message: errorMessage,
           original_url: url.trim(),
-          error: 'Validation request failed'
+          error: errorMessage
         });
       } finally {
         setIsValidating(false);
@@ -48,14 +56,20 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
       return;
     }
 
+    setSubmitError(null);
+    
     try {
       const channel = await createChannelMutation.mutateAsync({ url: url.trim() });
       setUrl('');
       setValidationResult(null);
+      setValidationError(null);
+      setSubmitError(null);
       onSuccess?.(channel);
-    } catch (error) {
-      // Error handling will be improved in later steps
-      console.error('Failed to create channel:', error);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail || 
+                         error?.message || 
+                         'Failed to create channel';
+      setSubmitError(errorMessage);
     }
   };
 
@@ -78,7 +92,10 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
               type="url"
               id="channel-url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setSubmitError(null); // Clear submit errors when user types
+              }}
               placeholder="https://www.youtube.com/@channelname"
               className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -128,6 +145,27 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
             : 'Add Channel'
           }
         </button>
+        
+        {/* Submit error display */}
+        {submitError && (
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                  Error creating channel
+                </h3>
+                <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+                  {submitError}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );
