@@ -17,7 +17,7 @@ How we are building it:
 - [x] Remove redundant entry points (keep only run.py, remove main.py and quick_setup.py)
 - [x] Remove placeholder transcription job routes until actual implementation needed
 - [x] Consolidate duplicate dev dependencies in pyproject.toml
-- [ ] Remove root-level test files (keep only tests/ directory structure)
+- [x] Remove root-level test files (keep only tests/ directory structure)
 - [ ] Simplify TypeScript configuration (single tsconfig.json)
 - [ ] Update imports and dependencies after consolidation
 - [ ] Test that YouTube API functionality still works after simplification
