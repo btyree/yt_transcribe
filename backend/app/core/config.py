@@ -1,6 +1,6 @@
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, BeforeValidator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,10 +29,16 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    allowed_origins: list[str] = Field(
-        default=["http://localhost:3000", "http://localhost:5173"],
-        description="Allowed CORS origins",
+    allowed_origins_str: str = Field(
+        default="http://localhost:3000,http://localhost:5173",
+        description="Allowed CORS origins (comma-separated)",
+        alias="ALLOWED_ORIGINS"
     )
+    
+    @property
+    def allowed_origins(self) -> list[str]:
+        """Parse CORS origins from string."""
+        return [i.strip() for i in self.allowed_origins_str.split(",")]
 
     # File Storage
     transcript_output_dir: str = Field(
@@ -46,13 +52,6 @@ class Settings(BaseSettings):
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8000, description="Server port")
 
-    @field_validator("allowed_origins", mode="before")
-    @classmethod
-    def parse_cors(cls, v: Any) -> list[str]:
-        """Parse CORS origins from string or list."""
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        return v
 
     model_config = SettingsConfigDict(
         env_file=".env",

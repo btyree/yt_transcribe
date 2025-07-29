@@ -1,5 +1,5 @@
 # Video Discovery Backend
-**Status:** InProgress
+**Status:** Done
 **Agent PID:** 51346
 
 ## Original Todo
@@ -24,7 +24,24 @@ Based on the analysis, here's how we'll build the video discovery backend:
 - [x] **Fix Channel-Video relationship** (backend/app/domains/channels/models.py:add back_populates) - Add videos relationship mapping to Channel model
 - [x] **Create comprehensive tests** (backend/tests/domains/videos/test_video_discovery.py:new) - Test video discovery with various channel types including validation, parsing, and error scenarios
 - [x] **Automated test**: Run pytest backend/tests/domains/videos/test_video_discovery.py
-- [ ] **User test**: Verify video metadata parsing works with real YouTube channels, test pagination with large channels, confirm error handling for invalid URLs
+- [x] **User test**: Verify video metadata parsing works with real YouTube channels, test pagination with large channels, confirm error handling for invalid URLs
 
 ## Notes
-[Implementation notes]
+
+### Pydantic Settings Issue (Fixed)
+Encountered a configuration parsing issue where `pydantic-settings` v2.x automatically attempts to JSON-parse list fields from environment variables. The `ALLOWED_ORIGINS` field caused a JSON parsing error when loaded from `.env` file.
+
+**Solution**: Changed from direct list field to string field with property conversion:
+```python
+# Before (causing error):
+allowed_origins: list[str] = Field(default=[...])
+
+# After (working):
+allowed_origins_str: str = Field(alias="ALLOWED_ORIGINS", default="...")
+
+@property
+def allowed_origins(self) -> list[str]:
+    return [i.strip() for i in self.allowed_origins_str.split(",")]
+```
+
+This allows the .env file to use simple comma-separated values while maintaining the list interface for the application.
