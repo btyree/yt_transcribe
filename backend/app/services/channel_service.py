@@ -7,7 +7,7 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.channels.models import Channel
+from app.models import Channel
 
 
 class YouTubeUrlValidator:

@@ -8,7 +8,7 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.videos.models import Video, VideoMetadata
+from app.models import Video, VideoMetadata
 from app.services.youtube_api import get_youtube_api_service
 
 
@@ -205,7 +205,7 @@ class VideoService:
             return []
 
         # Get channel database ID
-        from app.domains.channels.models import Channel
+        from app.models import Channel
 
         result = await db.execute(
             select(Channel).where(Channel.youtube_id == channel_youtube_id)
