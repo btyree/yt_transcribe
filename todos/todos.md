@@ -1,7 +1,6 @@
 # YouTube Transcription Tool - Development Tasks
 
 ## Channel Management & Video Discovery
-- [ ] Complete video discovery API endpoints
 - [ ] Simple channel input form in frontend
 - [ ] Video list display with basic metadata
 - [ ] Video selection interface with checkboxes
