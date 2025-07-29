@@ -1,9 +1,12 @@
 import { useVideosByChannel, useDiscoverVideos } from '../hooks/useVideos';
+import { useTranscriptionJobs } from '../hooks/useTranscriptionJobs';
+import { transcriptionJobsService } from '../services/transcription-jobs';
 import type { Channel } from '../types/api';
 import { Button } from './catalyst/button';
 import { Heading } from './catalyst/heading';
 import { Badge } from './catalyst/badge';
-import { EyeIcon, CalendarIcon } from '@heroicons/react/16/solid';
+import { EyeIcon, CalendarIcon, DocumentTextIcon } from '@heroicons/react/16/solid';
+import { useState } from 'react';
 
 export interface VideoListProps {
   channel: Channel;
@@ -12,6 +15,8 @@ export interface VideoListProps {
 export function VideoList({ channel }: VideoListProps) {
   const { data: videos, isLoading, error } = useVideosByChannel(channel.id);
   const discoverVideosMutation = useDiscoverVideos();
+  const { data: transcriptionJobs } = useTranscriptionJobs();
+  const [transcribingVideos, setTranscribingVideos] = useState<Set<number>>(new Set());
 
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -49,6 +54,30 @@ export function VideoList({ channel }: VideoListProps) {
     } catch (error) {
       console.error('Failed to discover videos:', error);
     }
+  };
+
+  const handleTranscribeVideo = async (videoId: number) => {
+    setTranscribingVideos(prev => new Set(prev).add(videoId));
+    try {
+      const job = await transcriptionJobsService.createTranscriptionJob({
+        video_id: videoId,
+        format: 'txt'
+      });
+      await transcriptionJobsService.startTranscriptionJob(job.id);
+    } catch (error) {
+      console.error('Failed to start transcription:', error);
+    } finally {
+      setTranscribingVideos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(videoId);
+        return newSet;
+      });
+    }
+  };
+
+  const getTranscriptionStatus = (videoId: number) => {
+    if (!transcriptionJobs) return null;
+    return transcriptionJobs.find(job => job.video_id === videoId);
   };
 
   if (isLoading) {
@@ -158,7 +187,7 @@ export function VideoList({ channel }: VideoListProps) {
                         </div>
                       )}
                     </div>
-                    <div className="mt-3">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         href={video.url}
                         target="_blank"
@@ -168,6 +197,48 @@ export function VideoList({ channel }: VideoListProps) {
                       >
                         Watch on YouTube
                       </Button>
+                      {(() => {
+                        const transcriptionJob = getTranscriptionStatus(video.id);
+                        const isTranscribing = transcribingVideos.has(video.id);
+                        
+                        if (transcriptionJob) {
+                          if (transcriptionJob.status === 'completed') {
+                            return (
+                              <Badge color="green" className="text-xs flex items-center gap-1">
+                                <DocumentTextIcon className="w-3 h-3" />
+                                Transcribed
+                              </Badge>
+                            );
+                          } else if (transcriptionJob.status === 'failed') {
+                            return (
+                              <Badge color="red" className="text-xs flex items-center gap-1">
+                                <DocumentTextIcon className="w-3 h-3" />
+                                Failed
+                              </Badge>
+                            );
+                          } else {
+                            return (
+                              <Badge color="amber" className="text-xs flex items-center gap-1">
+                                <DocumentTextIcon className="w-3 h-3" />
+                                {transcriptionJob.status === 'pending' ? 'Pending' : 
+                                 transcriptionJob.status === 'downloading' ? 'Downloading' : 
+                                 'Processing'}
+                              </Badge>
+                            );
+                          }
+                        }
+                        
+                        return (
+                          <Button
+                            onClick={() => handleTranscribeVideo(video.id)}
+                            disabled={isTranscribing}
+                            color="emerald"
+                            className="text-sm"
+                          >
+                            {isTranscribing ? 'Starting...' : 'Transcribe'}
+                          </Button>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
