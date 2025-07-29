@@ -5,8 +5,8 @@ import pytest
 from datetime import datetime
 from unittest.mock import Mock, patch, AsyncMock
 
-from app.domains.videos.models import VideoMetadata
-from app.domains.videos.services import VideoService
+from app.models import VideoMetadata
+from app.services.video_service import VideoService
 
 
 class TestVideoService:

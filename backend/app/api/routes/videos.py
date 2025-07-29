@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import get_db
-from app.domains.videos.services import video_service
+from app.services.video_service import video_service
 
 router = APIRouter()
 
