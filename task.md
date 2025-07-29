@@ -20,7 +20,7 @@ How we are building it:
 - [x] Display success message with channel details after successful creation
 - [x] Set up testing infrastructure (Vitest + React Testing Library) for component testing
 - [x] Automated test: Create basic component test for ChannelForm
-- [ ] User test: Verify form validates URLs, creates channels, and displays feedback properly
+- [x] User test: Verify form validates URLs, creates channels, and displays feedback properly
 
 ## Notes
 [Implementation notes]
