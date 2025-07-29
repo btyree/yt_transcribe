@@ -24,9 +24,13 @@ export const videosService = {
   },
 
   // Discover new videos from tracked channels
-  discoverVideos: async (): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>(
+  discoverVideos: async (channelYoutubeId: string, maxResults: number = 50): Promise<Video[]> => {
+    const response = await api.post<Video[]>(
       API_ENDPOINTS.DISCOVER_VIDEOS,
+      {
+        channel_youtube_id: channelYoutubeId,
+        max_results: maxResults
+      }
     );
     return response.data;
   },

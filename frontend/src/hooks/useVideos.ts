@@ -28,7 +28,7 @@ export const useDiscoverVideos = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: videosService.discoverVideos,
+    mutationFn: (channelYoutubeId: string) => videosService.discoverVideos(channelYoutubeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
       queryClient.invalidateQueries({ queryKey: ['channels'] });

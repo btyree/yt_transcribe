@@ -12,7 +12,7 @@ export function VideoList({ channel }: VideoListProps) {
 
   const handleDiscoverVideos = async () => {
     try {
-      await discoverVideosMutation.mutateAsync();
+      await discoverVideosMutation.mutateAsync(channel.youtube_id);
     } catch (error) {
       console.error('Failed to discover videos:', error);
     }

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ChannelForm } from './components/ChannelForm';
 import { VideoList } from './components/VideoList';
+import { useChannels } from './hooks/useChannels';
 import type { Channel } from './types/api';
 
 function App() {
   const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
+  const { data: existingChannels } = useChannels();
 
   const handleChannelCreated = (channel: Channel) => {
     setCreatedChannel(channel);
@@ -37,6 +39,18 @@ function App() {
             
             <VideoList channel={createdChannel} />
           </>
+        )}
+
+        {/* Show existing channels for testing */}
+        {existingChannels && existingChannels.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-6">
+              Existing Channels
+            </h2>
+            {existingChannels.map((channel) => (
+              <VideoList key={channel.id} channel={channel} />
+            ))}
+          </div>
         )}
       </div>
     </div>

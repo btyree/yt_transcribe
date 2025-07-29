@@ -167,7 +167,7 @@ describe('VideoList', () => {
     const discoverButton = screen.getByRole('button', { name: /discover videos/i });
     await user.click(discoverButton);
 
-    expect(mockMutateAsync).toHaveBeenCalledWith();
+    expect(mockMutateAsync).toHaveBeenCalledWith(mockChannel.youtube_id);
   });
 
   it('shows loading state for discover videos button', () => {
