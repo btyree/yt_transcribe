@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import channels, health, transcription_jobs, videos
+from app.api.routes import channels, health, videos
 from app.core.config import settings
 
 # Create FastAPI instance
@@ -26,8 +26,3 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(channels.router, prefix="/api/v1/channels", tags=["channels"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
-app.include_router(
-    transcription_jobs.router,
-    prefix="/api/v1/transcription-jobs",
-    tags=["transcription-jobs"],
-)
