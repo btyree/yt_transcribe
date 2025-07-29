@@ -12,7 +12,7 @@ from app.db.base import Base
 
 class VideoMetadata(BaseModel):
     """Pydantic model for video metadata response."""
-    
+
     youtube_id: str
     title: str
     duration_seconds: Optional[int] = None

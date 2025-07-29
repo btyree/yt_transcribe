@@ -27,5 +27,7 @@ app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(channels.router, prefix="/api/v1/channels", tags=["channels"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
 app.include_router(
-    transcription_jobs.router, prefix="/api/v1/transcription-jobs", tags=["transcription-jobs"]
+    transcription_jobs.router,
+    prefix="/api/v1/transcription-jobs",
+    tags=["transcription-jobs"],
 )
