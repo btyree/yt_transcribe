@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChannelForm } from './components/ChannelForm';
+import { VideoList } from './components/VideoList';
 import type { Channel } from './types/api';
 
 function App() {
@@ -24,14 +25,18 @@ function App() {
         <ChannelForm onSuccess={handleChannelCreated} />
 
         {createdChannel && (
-          <div className="max-w-md mx-auto mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-              Channel Added Successfully!
-            </h3>
-            <p className="text-green-700 dark:text-green-300">
-              <strong>{createdChannel.title}</strong> has been added to your channels.
-            </p>
-          </div>
+          <>
+            <div className="max-w-md mx-auto mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
+                Channel Added Successfully!
+              </h3>
+              <p className="text-green-700 dark:text-green-300">
+                <strong>{createdChannel.title}</strong> has been added to your channels.
+              </p>
+            </div>
+            
+            <VideoList channel={createdChannel} />
+          </>
         )}
       </div>
     </div>
