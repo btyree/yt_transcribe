@@ -9,18 +9,27 @@ FastAPI-based backend for the YouTube transcription tool.
    uv sync --dev
    ```
 
-2. Copy environment variables:
-   ```bash
-   cp .env.example .env
-   ```
+2. Set up 1Password secrets:
+   - Install 1Password CLI: https://developer.1password.com/docs/cli/get-started/
+   - Sign in: `op signin`
+   - Create a 1Password item named "YT-Transcribe" in your "Private" vault with:
+     - `youtube_api_key` field
+     - `deepgram_api_key` field
+   - Update `.env` file vault/item names if different
 
-3. Update `.env` with your API keys:
-   - YouTube Data API v3 key
-   - Deepgram API key
+3. Initialize database:
+   ```bash
+   python simple_db_init.py
+   ```
 
 ## Development
 
-Run the development server:
+### With 1Password (Recommended)
+```bash
+./start.sh
+```
+
+### Without 1Password (Development)
 ```bash
 uv run python run.py
 ```

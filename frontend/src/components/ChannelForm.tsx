@@ -128,7 +128,9 @@ export function ChannelForm({ onSuccess }: ChannelFormProps) {
         </Button>
         
         {submitError && (
-          <ErrorMessage>{submitError}</ErrorMessage>
+          <Field>
+            <ErrorMessage>{submitError}</ErrorMessage>
+          </Field>
         )}
       </form>
     </div>
