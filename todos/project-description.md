@@ -44,4 +44,4 @@ A personal productivity application that automates the transcription of YouTube 
 **Will need**: pytest for Python backend, Jest/Vitest for TypeScript/JS frontend, testing for API integrations, batch processing, file management, and UI components
 
 ## Editor
-- Open folder: sesh-use
+- Open folder: sesh connect
