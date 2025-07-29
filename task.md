@@ -15,7 +15,7 @@ How we are building it:
 - [x] Create useValidateChannel hook for URL validation (frontend/src/hooks/useChannels.ts)
 - [x] Replace default Vite template in App.tsx with the new ChannelForm component (frontend/src/App.tsx:1-50)
 - [x] Style the form using Tailwind CSS with dark mode support
-- [ ] Add form state management for URL input, validation, and submission
+- [x] Add form state management for URL input, validation, and submission
 - [ ] Implement error handling and loading states for both validation and creation
 - [x] Display success message with channel details after successful creation
 - [ ] Automated test: Create basic component test for ChannelForm
