@@ -50,4 +50,3 @@ uv run mypy .
   - `services/` - Business logic services
   - `db/` - Database configuration and utilities
 - `tests/` - Test files
-- `alembic/` - Database migrations

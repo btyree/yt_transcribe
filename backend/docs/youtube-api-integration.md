@@ -533,7 +533,7 @@ Monitor your quota usage in the Google Cloud Console.
    - Try using the channel ID format instead
 
 5. **Database connection errors**
-   - Run database migrations: `uv run alembic upgrade head`
+   - Database tables are created automatically on startup
    - Verify database URL in environment configuration
 
 ### Debugging Tips

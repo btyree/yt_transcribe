@@ -4,7 +4,7 @@
 
 - [ ] YouTube Data API v3 enabled in Google Cloud Console
 - [ ] API key created and added to `.env` file
-- [ ] Database migrations run: `uv run alembic upgrade head`
+- [ ] Database tables created automatically on startup
 - [ ] Dependencies installed: `uv sync`
 
 ## Environment Variables
