@@ -1,5 +1,5 @@
 # Video list display with basic metadata
-**Status:** InProgress
+**Status:** AwaitingCommit
 **Agent PID:** 60089
 
 ## Original Todo

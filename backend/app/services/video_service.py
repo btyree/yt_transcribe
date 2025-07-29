@@ -221,13 +221,17 @@ class VideoService:
         # Process each video from the API response
         for video_item in videos_response["items"]:
             # Extract video ID from different response formats
-            if "snippet" in video_item:
-                # From search or playlist items
-                video_id = video_item.get("id", {}).get("videoId") or video_item[
-                    "snippet"
-                ].get("resourceId", {}).get("videoId")
-            else:
-                video_id = video_item.get("id")
+            video_id = None
+            
+            # Handle playlist item format (most common)
+            if "snippet" in video_item and "resourceId" in video_item["snippet"]:
+                video_id = video_item["snippet"]["resourceId"].get("videoId")
+            # Handle search result format
+            elif "id" in video_item and isinstance(video_item["id"], dict):
+                video_id = video_item["id"].get("videoId")
+            # Handle direct video ID
+            elif "id" in video_item and isinstance(video_item["id"], str):
+                video_id = video_item["id"]
 
             if not video_id:
                 continue
