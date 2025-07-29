@@ -1,6 +1,8 @@
 import asyncio
 
 from app.db.base import Base, engine
+# Import models to register them with Base metadata
+from app.db.models import *  # noqa: F401,F403
 
 
 async def init_database() -> None:

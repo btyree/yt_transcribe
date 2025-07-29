@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import get_db
-from app.domains.channels.services import channel_service
+from app.services.channel_service import channel_service
 
 
 # Request/Response models
@@ -119,7 +119,7 @@ async def create_channel(
                 raise ValueError(f"Channel already exists: {channel.title}")
 
         # Use YouTube API to fetch real channel data
-        from app.domains.channels.models import Channel
+        from app.models import Channel
         from app.services.youtube_api import (
             YouTubeAPIService,
             YouTubeQuotaExceededError,

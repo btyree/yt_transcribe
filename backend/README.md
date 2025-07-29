@@ -22,7 +22,7 @@ FastAPI-based backend for the YouTube transcription tool.
 
 Run the development server:
 ```bash
-uv run uvicorn main:app --reload
+uv run python run.py
 ```
 
 Run tests:
@@ -50,4 +50,3 @@ uv run mypy .
   - `services/` - Business logic services
   - `db/` - Database configuration and utilities
 - `tests/` - Test files
-- `alembic/` - Database migrations
