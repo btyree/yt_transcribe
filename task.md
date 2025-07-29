@@ -1,5 +1,5 @@
 # Simplify the current codebase
-**Status:** AwaitingCommit
+**Status:** Done
 **Agent PID:** 8453
 
 ## Original Todo
