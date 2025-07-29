@@ -28,6 +28,12 @@ export const useCreateChannel = () => {
   });
 };
 
+export const useValidateChannel = () => {
+  return useMutation({
+    mutationFn: (url: string) => channelsService.validateChannelUrl(url),
+  });
+};
+
 export const useDeleteChannel = () => {
   const queryClient = useQueryClient();
 
