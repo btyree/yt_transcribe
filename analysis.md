@@ -167,3 +167,227 @@ The codebase has significant over-engineering for its current scope. Despite bei
 - **Configuration files simplified:** 8-10 config files reduced to 2-3
 
 The current codebase has approximately 3x more infrastructure complexity than needed for its actual functionality. This simplification would create a more maintainable, understandable codebase appropriate for a personal productivity tool.
+
+---
+
+# Frontend Structure Analysis for Channel Input Form
+
+Based on comprehensive analysis of the frontend codebase structure:
+
+## Framework and Libraries Used
+- **Framework**: React 19.1.0 with TypeScript
+- **Build Tool**: Vite 7.0.4
+- **State Management**: React Query (@tanstack/react-query v5.83.0) for server state
+- **HTTP Client**: Axios 1.11.0
+- **Routing**: React Router DOM 7.7.1 (installed but not yet used)
+- **Icons**: Lucide React 0.532.0
+- **Utilities**: clsx 2.1.1, tailwind-merge 3.3.1
+
+## Styling Approach
+- **Primary Styling**: Tailwind CSS 4.1.11 with PostCSS
+- **Configuration**: `frontend/tailwind.config.js`
+- **Global Styles**: `frontend/src/index.css` includes Tailwind directives and custom CSS variables
+- **Component Styles**: `frontend/src/App.css` for component-specific styles
+- **Theme**: Dark mode by default with light mode support via CSS media queries
+
+## Current UI Structure and Components
+- **Main App Component**: `frontend/src/App.tsx`
+  - Currently contains a basic Vite + React template with logos and counter
+  - Very minimal implementation - essentially the default Vite template
+- **No Custom Components**: No existing UI components directory - this is a fresh setup
+- **Entry Point**: `frontend/src/main.tsx`
+
+## Form Implementation Patterns
+Currently, there are **no existing forms** in the codebase, but the infrastructure is ready:
+- React Query is configured for mutations via `useCreateChannel` hook
+- Form validation would need to be implemented (no form library currently installed)
+- The channel service expects a `CreateChannelRequest` with a `url` string field
+
+## API Integration and User Input Handling
+
+**API Setup:**
+- **Base Configuration**: `frontend/src/services/api.ts`
+  - Axios instance with interceptors for logging and error handling
+  - Base URL: `http://localhost:8000` (configurable via `VITE_API_BASE_URL`)
+  - 10-second timeout, JSON content type
+
+**Channel Operations:**
+- **Service**: `frontend/src/services/channels.ts`
+  - `createChannel(data: CreateChannelRequest)` - expects `{ url: string }`
+  - Full CRUD operations available
+- **Hooks**: `frontend/src/hooks/useChannels.ts`
+  - `useCreateChannel()` mutation with automatic query invalidation
+
+**API Endpoints:**
+- Channels: `/api/v1/channels` (POST for creation)
+- Full endpoint definitions in `frontend/src/constants/api.ts`
+
+**Type Definitions:**
+- Channel interface in `frontend/src/types/api.ts`
+
+## Current App Component Details
+The main App component (`frontend/src/App.tsx`) currently contains:
+- Default Vite + React template
+- Basic counter functionality
+- Logo displays for Vite and React
+- Uses traditional CSS classes (not Tailwind yet in the component)
+
+## Development Setup
+- **Dev Server**: Vite on port 3000
+- **API Proxy**: `/api` requests proxied to `http://localhost:8000`
+- **Query Provider**: React Query configured with 5-minute stale time and smart retry logic
+- **Development Tools**: React Query DevTools available
+
+---
+
+# Channel Implementation Research Report
+
+Based on analysis of how channels are currently handled in the codebase:
+
+## Backend API Endpoints
+
+The channel API endpoints are defined in `backend/app/api/routes/channels.py` with the following endpoints:
+
+### Available Endpoints:
+- **POST** `/api/v1/channels/validate` - Validates YouTube channel URL format
+- **GET** `/api/v1/channels/` - Lists all tracked channels
+- **POST** `/api/v1/channels/` - Creates a new channel (with full YouTube API integration)
+- **GET** `/api/v1/channels/{channel_id}` - Gets details of a specific channel
+- **DELETE** `/api/v1/channels/{channel_id}` - Removes a channel from tracking
+
+### Request/Response Models:
+- `ChannelCreateRequest`: Only requires a `url` field
+- `ChannelResponse`: Full channel data with all metadata
+- `ChannelValidationResponse`: Validation result with URL parsing details
+
+## Frontend-Backend Communication
+
+### API Client Pattern:
+The frontend uses a centralized API client pattern defined in `frontend/src/services/api.ts`:
+
+```typescript
+// Axios-based client with interceptors for logging and error handling
+export const api = {
+  get, post, put, patch, delete
+}
+```
+
+### Channel Service:
+Located at `frontend/src/services/channels.ts`:
+
+```typescript
+export const channelsService = {
+  getChannels: () => Promise<Channel[]>
+  getChannelById: (id: number) => Promise<Channel>
+  createChannel: (data: CreateChannelRequest) => Promise<Channel>
+  deleteChannel: (id: number) => Promise<void>
+}
+```
+
+**Note**: The validation endpoint (`/validate`) is not yet implemented in the frontend service.
+
+## Channel Data Structure/Types
+
+### Backend Model (SQLAlchemy):
+Located in `backend/app/models.py`:
+
+```python
+class Channel(Base):
+    id: int (primary key)
+    youtube_id: str (unique, indexed)
+    title: str
+    description: str | None
+    url: str
+    thumbnail_url: str | None
+    custom_url: str | None
+    subscriber_count: int | None
+    video_count: int | None
+    view_count: int | None
+    published_at: str | None
+    created_at: datetime
+    updated_at: datetime
+    
+    # Relationships
+    videos: list[Video]
+```
+
+### Frontend Types:
+Located in `frontend/src/types/api.ts`:
+
+```typescript
+interface Channel {
+  id: number
+  youtube_id: string
+  title: string
+  description?: string
+  url: string
+  thumbnail_url?: string
+  subscriber_count?: number
+  video_count?: number
+  created_at: string
+  updated_at: string
+}
+```
+
+**Note**: Frontend types are missing some fields present in backend (custom_url, view_count, published_at).
+
+## Existing Hooks and Services
+
+### React Query Hooks:
+Located in `frontend/src/hooks/useChannels.ts`:
+
+```typescript
+useChannels() // Query all channels
+useChannel(id: number) // Query single channel
+useCreateChannel() // Mutation for creating channels
+useDeleteChannel() // Mutation for deleting channels
+```
+
+### Backend Service:
+Located in `frontend/app/services/channel_service.py`:
+
+```python
+ChannelService:
+    validate_channel_url(url) -> validation_result
+    get_channel_by_id(db, channel_id) -> Channel | None
+    get_channel_by_youtube_id(db, youtube_id) -> Channel | None
+    get_all_channels(db) -> list[Channel]
+    delete_channel(db, channel) -> None
+```
+
+### URL Validation Service:
+The backend includes a sophisticated `YouTubeUrlValidator` class that handles:
+- Username format: `youtube.com/@username`
+- Channel ID format: `youtube.com/channel/CHANNEL_ID`
+- Legacy C format: `youtube.com/c/name`
+- Legacy user format: `youtube.com/user/username`
+
+## API Client Patterns Used
+
+### Request/Response Pattern:
+- All services use async/await with TypeScript generics
+- Centralized error handling in API client interceptors
+- React Query for caching and state management
+- Automatic cache invalidation on mutations
+
+### Error Handling:
+- Backend returns structured HTTP errors with meaningful messages
+- Frontend logs requests/responses via interceptors
+- Global error handling for 401/500+ status codes
+
+### Architecture Patterns:
+- **Service Layer**: Business logic separated from API routes
+- **Repository Pattern**: Database operations abstracted through services  
+- **Request/Response DTOs**: Separate models for API contracts
+- **React Query Integration**: Optimistic updates and cache management
+
+## Key Findings:
+
+1. **Missing Frontend Implementation**: The `/validate` endpoint exists in backend but not implemented in frontend service
+2. **Type Mismatch**: Frontend Channel type is missing some backend fields
+3. **Comprehensive URL Validation**: Backend handles multiple YouTube URL formats
+4. **Full YouTube API Integration**: Channel creation fetches real metadata from YouTube API
+5. **Proper Error Handling**: Both layers have structured error handling
+6. **Modern React Patterns**: Uses React Query for server state management
+
+The codebase shows a well-structured, modern approach to API communication with proper separation of concerns and type safety throughout the stack.
