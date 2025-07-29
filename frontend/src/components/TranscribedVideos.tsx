@@ -10,7 +10,11 @@ import {
   DocumentTextIcon, 
   CalendarIcon, 
   EyeIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  XCircleIcon
 } from '@heroicons/react/16/solid';
 import type { TranscriptionJob } from '../types/api';
 
@@ -21,10 +25,10 @@ export function TranscribedVideos() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
 
-  const completedJobs = transcriptionJobs?.filter(job => job.status === 'completed') || [];
+  const allJobs = transcriptionJobs || [];
 
   const filteredJobs = useMemo(() => {
-    return completedJobs.filter(job => {
+    return allJobs.filter(job => {
       const matchesSearch = searchQuery === '' || 
         job.video?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.video?.channel?.title?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -36,7 +40,7 @@ export function TranscribedVideos() {
 
       return matchesSearch && matchesStatus && matchesChannel;
     });
-  }, [completedJobs, searchQuery, statusFilter, channelFilter]);
+  }, [allJobs, searchQuery, statusFilter, channelFilter]);
 
   const formatDuration = (seconds?: number) => {
     if (!seconds) return '';
@@ -71,22 +75,79 @@ export function TranscribedVideos() {
     });
   };
 
+  const getStatusBadge = (job: TranscriptionJob) => {
+    switch (job.status) {
+      case 'completed':
+        return (
+          <Badge color="green" className="text-xs">
+            <CheckCircleIcon className="w-3 h-3 mr-1" />
+            Completed
+          </Badge>
+        );
+      case 'processing':
+        return (
+          <Badge color="blue" className="text-xs">
+            <ArrowPathIcon className="w-3 h-3 mr-1 animate-spin" />
+            Processing ({job.progress_percentage}%)
+          </Badge>
+        );
+      case 'downloading':
+        return (
+          <Badge color="yellow" className="text-xs">
+            <ArrowPathIcon className="w-3 h-3 mr-1 animate-spin" />
+            Downloading ({job.progress_percentage}%)
+          </Badge>
+        );
+      case 'pending':
+        return (
+          <Badge color="gray" className="text-xs">
+            <DocumentTextIcon className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case 'failed':
+        return (
+          <Badge color="red" className="text-xs">
+            <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        );
+      case 'cancelled':
+        return (
+          <Badge color="red" className="text-xs">
+            <XCircleIcon className="w-3 h-3 mr-1" />
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge color="gray" className="text-xs">
+            {job.status}
+          </Badge>
+        );
+    }
+  };
+
   const handleDownload = async (job: TranscriptionJob) => {
-    if (!job.output_file_path) return;
+    if (!job.transcript_content) return;
     
     try {
-      const response = await fetch(`/api/transcriptions/${job.id}/download`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${job.video?.title || 'transcription'}.${job.format}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      // Create a clean filename with channel and video title
+      const channelName = job.video?.channel?.title || 'Unknown Channel';
+      const videoTitle = job.video?.title || 'Unknown Video';
+      const cleanChannelName = channelName.replace(/[/\\?%*:|"<>]/g, '-');
+      const cleanVideoTitle = videoTitle.replace(/[/\\?%*:|"<>]/g, '-');
+      const filename = `[${cleanChannelName}] ${cleanVideoTitle}.${job.format}`;
+      
+      const blob = new Blob([job.transcript_content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Failed to download transcription:', error);
     }
@@ -126,10 +187,10 @@ export function TranscribedVideos() {
       {/* Header */}
       <div className="mb-8">
         <h2 className="text-xl font-medium text-zinc-900 mb-2">
-          Transcribed Videos
+          Transcription Jobs
         </h2>
         <p className="text-zinc-500">
-          {completedJobs.length} videos have been transcribed successfully
+          {allJobs.length} transcription jobs in progress or completed
         </p>
       </div>
 
@@ -167,8 +228,11 @@ export function TranscribedVideos() {
           >
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
+            <option value="processing">Processing</option>
+            <option value="downloading">Downloading</option>
             <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
           </Select>
         </div>
       </div>
@@ -179,8 +243,8 @@ export function TranscribedVideos() {
           <DocumentTextIcon className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-zinc-900 mb-2">
             {searchQuery || statusFilter !== 'all' || channelFilter !== 'all' 
-              ? 'No videos match your filters' 
-              : 'No transcribed videos yet'}
+              ? 'No jobs match your filters' 
+              : 'No transcription jobs yet'}
           </h3>
           <p className="text-zinc-500">
             {searchQuery || statusFilter !== 'all' || channelFilter !== 'all'
@@ -238,32 +302,48 @@ export function TranscribedVideos() {
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <Badge color="green" className="text-xs">
-                        <DocumentTextIcon className="w-3 h-3 mr-1" />
-                        {job.format.toUpperCase()} Format
-                      </Badge>
-                      
-                      <Button
-                        onClick={() => handleDownload(job)}
-                        color="zinc"
-                        className="text-sm px-3 py-1"
-                      >
-                        <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                      
-                      {job.video?.url && (
-                        <Button
-                          href={job.video.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          outline
-                          className="text-sm px-3 py-1"
-                        >
-                          Watch Original
-                        </Button>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        {getStatusBadge(job)}
+                        <Badge color="zinc" className="text-xs">
+                          {job.format.toUpperCase()} Format
+                        </Badge>
+                      </div>
+
+                      {/* Progress bar for active jobs */}
+                      {(job.status === 'downloading' || job.status === 'processing') && (
+                        <div className="w-full bg-zinc-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${job.progress_percentage}%` }}
+                          ></div>
+                        </div>
                       )}
+                      
+                      <div className="flex items-center space-x-3">
+                        {job.status === 'completed' && (
+                          <Button
+                            onClick={() => handleDownload(job)}
+                            color="zinc"
+                            className="text-sm px-3 py-1"
+                          >
+                            <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                            Download
+                          </Button>
+                        )}
+                        
+                        {job.video?.url && (
+                          <Button
+                            href={job.video.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            outline
+                            className="text-sm px-3 py-1"
+                          >
+                            Watch Original
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

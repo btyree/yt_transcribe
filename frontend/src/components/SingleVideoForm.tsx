@@ -99,13 +99,12 @@ export function SingleVideoForm({ onVideoTranscribed }: SingleVideoFormProps) {
 
       setExtractedVideo(mockVideo);
 
-      // Create and start transcription job
+      // Create transcription job (automatically starts)
       const job = await transcriptionJobsService.createTranscriptionJob({
         video_id: mockVideo.id,
         format: 'txt'
       });
 
-      await transcriptionJobsService.startTranscriptionJob(job.id);
       setTranscriptionJob(job);
       refetch();
 

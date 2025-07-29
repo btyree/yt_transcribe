@@ -61,11 +61,11 @@ export function VideoList({ channel }: VideoListProps) {
   const handleTranscribeVideo = async (videoId: number) => {
     setTranscribingVideos(prev => new Set(prev).add(videoId));
     try {
-      const job = await transcriptionJobsService.createTranscriptionJob({
+      await transcriptionJobsService.createTranscriptionJob({
         video_id: videoId,
         format: 'txt'
       });
-      await transcriptionJobsService.startTranscriptionJob(job.id);
+      // Job automatically starts when created
     } catch (error) {
       console.error('Failed to start transcription:', error);
     } finally {

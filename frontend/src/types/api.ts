@@ -50,6 +50,8 @@ export interface TranscriptionJob {
     | 'cancelled';
   format: 'txt' | 'srt' | 'vtt';
   output_file_path?: string;
+  transcript_content?: string;
+  deepgram_response?: string;
   error_message?: string;
   progress_percentage: number;
   started_at?: string;

@@ -31,18 +31,6 @@ export const useCreateTranscriptionJob = () => {
   });
 };
 
-export const useStartTranscriptionJob = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) =>
-      transcriptionJobsService.startTranscriptionJob(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transcription-jobs'] });
-    },
-  });
-};
-
 export const useCancelTranscriptionJob = () => {
   const queryClient = useQueryClient();
 
@@ -57,8 +45,8 @@ export const useCancelTranscriptionJob = () => {
 
 export const useTranscriptionJobStatus = (id: number) => {
   return useQuery({
-    queryKey: ['transcription-jobs', id, 'status'],
-    queryFn: () => transcriptionJobsService.getTranscriptionJobStatus(id),
+    queryKey: ['transcription-jobs', id],
+    queryFn: () => transcriptionJobsService.getTranscriptionJobById(id),
     enabled: !!id,
     refetchInterval: 5000, // Poll every 5 seconds for status updates
   });
