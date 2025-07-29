@@ -14,7 +14,7 @@ How we are building it:
 - [x] Clean up unused dependencies from pyproject.toml (yt-dlp, deepgram-sdk, greenlet)
 - [x] Remove Alembic migration system and files (use simple database creation)
 - [x] Consolidate domain architecture (merge models into single models.py)
-- [ ] Remove redundant entry points (keep only run.py, remove main.py and quick_setup.py)
+- [x] Remove redundant entry points (keep only run.py, remove main.py and quick_setup.py)
 - [ ] Remove placeholder transcription job routes until actual implementation needed
 - [x] Consolidate duplicate dev dependencies in pyproject.toml
 - [ ] Remove root-level test files (keep only tests/ directory structure)
