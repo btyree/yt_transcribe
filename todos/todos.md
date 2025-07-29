@@ -1,7 +1,6 @@
 # YouTube Transcription Tool - Development Tasks
 
 ## Channel Management & Video Discovery
-- [ ] Video list display with basic metadata
 - [ ] Video selection interface with checkboxes
 
 ## Audio Processing Pipeline
