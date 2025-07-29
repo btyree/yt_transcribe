@@ -13,6 +13,16 @@ export interface Channel {
   updated_at: string;
 }
 
+export interface ChannelValidationResponse {
+  is_valid: boolean;
+  message: string;
+  type?: string;
+  identifier?: string;
+  original_url: string;
+  normalized_url?: string;
+  error?: string;
+}
+
 export interface Video {
   id: number;
   youtube_id: string;
