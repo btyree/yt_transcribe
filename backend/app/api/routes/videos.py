@@ -69,7 +69,7 @@ async def discover_videos(
         discovered_videos = await video_service.discover_videos_for_channel(
             db, request.channel_youtube_id, request.max_results
         )
-        return [VideoResponse.from_orm(video) for video in discovered_videos]
+        return [VideoResponse.model_validate(video) for video in discovered_videos]
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

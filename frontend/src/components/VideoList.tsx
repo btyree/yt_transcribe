@@ -1,6 +1,9 @@
 import { useVideosByChannel, useDiscoverVideos } from '../hooks/useVideos';
-import { VideoCard } from './VideoCard';
 import type { Channel } from '../types/api';
+import { Button } from './catalyst/button';
+import { Heading } from './catalyst/heading';
+import { Badge } from './catalyst/badge';
+import { EyeIcon, CalendarIcon } from '@heroicons/react/16/solid';
 
 export interface VideoListProps {
   channel: Channel;
@@ -9,6 +12,36 @@ export interface VideoListProps {
 export function VideoList({ channel }: VideoListProps) {
   const { data: videos, isLoading, error } = useVideosByChannel(channel.id);
   const discoverVideosMutation = useDiscoverVideos();
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatViewCount = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    }
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   const handleDiscoverVideos = async () => {
     try {
@@ -58,44 +91,88 @@ export function VideoList({ channel }: VideoListProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Videos from {channel.title}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <Heading level={2}>Videos from {channel.title}</Heading>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
             {hasVideos ? `${videos.length} videos found` : 'No videos found'}
           </p>
         </div>
         
-        {/* Discover Videos Button */}
-        <button
+        <Button
           onClick={handleDiscoverVideos}
           disabled={discoverVideosMutation.isPending}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 
-                   text-white font-medium rounded-md transition-colors
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                   flex items-center"
+          color="blue"
         >
-          {discoverVideosMutation.isPending ? (
-            <>
-              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-              Discovering...
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd"/>
-              </svg>
-              Discover Videos
-            </>
-          )}
-        </button>
+          {discoverVideosMutation.isPending ? 'Discovering...' : 'Discover Videos'}
+        </Button>
       </div>
 
-      {/* Videos Grid or Empty State */}
+      {/* Videos Cards or Empty State */}
       {hasVideos ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="space-y-6">
           {videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
+            <div key={video.id} className="overflow-hidden rounded-lg bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="sm:flex">
+                  <div className="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+                    {video.thumbnail_url ? (
+                      <img
+                        src={video.thumbnail_url}
+                        alt={video.title}
+                        className="size-16 rounded object-cover border border-zinc-300 dark:border-zinc-600"
+                      />
+                    ) : (
+                      <svg 
+                        viewBox="0 0 200 200" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        preserveAspectRatio="none" 
+                        aria-hidden="true" 
+                        className="size-16 border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-300 dark:text-zinc-600"
+                      >
+                        <path d="M0 0l200 200M0 200L200 0" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-lg font-semibold text-zinc-900 dark:text-white leading-6">
+                      {video.title}
+                    </h4>
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+                      {video.duration_seconds && (
+                        <div className="flex items-center space-x-1">
+                          <Badge color="zinc" className="text-xs">
+                            {formatDuration(video.duration_seconds)}
+                          </Badge>
+                        </div>
+                      )}
+                      {video.view_count && (
+                        <div className="flex items-center space-x-1">
+                          <EyeIcon className="w-4 h-4" />
+                          <span>{formatViewCount(video.view_count)} views</span>
+                        </div>
+                      )}
+                      {video.published_at && (
+                        <div className="flex items-center space-x-1">
+                          <CalendarIcon className="w-4 h-4" />
+                          <span>{formatDate(video.published_at)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <Button
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        outline
+                        className="text-sm"
+                      >
+                        Watch on YouTube
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
