@@ -8,13 +8,15 @@ interface TranscriptWithHighlightsProps {
   words: WordTimestamp[];
   currentTime: number;
   onSeekToTime: (time: number) => void;
+  onCreateNoteFromSelection?: (selectionData: { text: string; startTime: number; endTime: number }) => void;
 }
 
 export function TranscriptWithHighlights({ 
   job, 
   words, 
   currentTime, 
-  onSeekToTime 
+  onSeekToTime,
+  onCreateNoteFromSelection 
 }: TranscriptWithHighlightsProps) {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const selectionDialogRef = useRef<HTMLDivElement>(null);
@@ -83,6 +85,7 @@ export function TranscriptWithHighlights({
     }
   }, [selectedText]);
 
+
   const dismissSelection = () => {
     setSelectedText('');
     setSelectionRange(null);
@@ -127,22 +130,17 @@ export function TranscriptWithHighlights({
     }
   };
 
-  const handleCreateNoteFromSelection = async () => {
-    if (!selectedText || !selectionRange) return;
+  const handleCreateNoteFromSelection = () => {
+    if (!selectedText || !selectionRange || !onCreateNoteFromSelection) return;
 
-    try {
-      await createNote.mutateAsync({
-        start_time: selectionRange.start,
-        end_time: selectionRange.end,
-        content: `Note for: "${selectedText}"`,
-        selected_text: selectedText
-      });
-      
-      // Clear selection
-      dismissSelection();
-    } catch (error) {
-      console.error('Failed to create note from selection:', error);
-    }
+    onCreateNoteFromSelection({
+      text: selectedText,
+      startTime: selectionRange.start,
+      endTime: selectionRange.end
+    });
+    
+    // Clear selection
+    dismissSelection();
   };
 
   const formatTime = (time: number) => {
@@ -192,22 +190,27 @@ export function TranscriptWithHighlights({
 
       {/* Selection Actions */}
       {selectedText && (
-        <div ref={selectionDialogRef} className="p-3 border-b border-zinc-200 bg-blue-50 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 mr-3">
-              <p className="text-sm font-medium text-blue-900">Text Selected</p>
-              <p className="text-xs text-blue-700 truncate">"{selectedText}"</p>
+        <div 
+          ref={selectionDialogRef} 
+          className="fixed bottom-4 left-4 right-4 mx-auto max-w-lg z-50 p-3 border border-blue-200 bg-blue-50 rounded-lg shadow-lg"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-blue-900 mb-1">Text Selected</p>
+              <p className="text-xs text-blue-700 line-clamp-2 break-words">
+                "{selectedText.length > 100 ? selectedText.substring(0, 100) + '...' : selectedText}"
+              </p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               <button
                 onClick={handleCreateNoteFromSelection}
-                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
               >
                 Create Note
               </button>
               <button
                 onClick={dismissSelection}
-                className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors flex-shrink-0"
                 title="Dismiss selection"
               >
                 <XMarkIcon className="w-4 h-4" />

@@ -15,6 +15,7 @@ export function VideoPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [selectedJob, setSelectedJob] = useState<TranscriptionJob | null>(null);
+  const [selectionData, setSelectionData] = useState<{ text: string; startTime: number; endTime: number } | null>(null);
 
   const { data: jobs } = useTranscriptionJobs();
   const { data: words, isLoading: isLoadingWords, error: wordsError } = useWordTimestamps(
@@ -41,6 +42,14 @@ export function VideoPage() {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
     }
+  };
+
+  const handleCreateNoteFromSelection = (data: { text: string; startTime: number; endTime: number }) => {
+    setSelectionData(data);
+  };
+
+  const handleClearSelection = () => {
+    setSelectionData(null);
   };
 
   if (!selectedJob) {
@@ -92,12 +101,12 @@ export function VideoPage() {
         </div>
       </header>
 
-      {/* Main Content - Video and Transcript on top, Notes below */}
-      <main className="mx-auto max-w-7xl px-8 py-6 h-[calc(100vh-180px)] flex flex-col gap-6">
-        {/* Top section - Video and Transcript side by side - 1/3 of screen height */}
-        <div className="h-1/3 min-h-0 grid grid-cols-12 gap-6">
-          {/* Video Player - 1/3 (4 columns) */}
-          <div className="col-span-4 min-h-0 h-full">
+      {/* Main Content - 1/3 left column (video + transcript), 2/3 right column (notes) */}
+      <main className="mx-auto max-w-7xl px-8 py-6 h-[calc(100vh-180px)] flex gap-6">
+        {/* Left column - Video (top 1/3) + Transcript (bottom 2/3) */}
+        <div className="w-1/3 flex flex-col gap-4 min-h-0">
+          {/* Video Player - 1/3 of left column height */}
+          <div className="h-1/3 min-h-0">
             <div className="bg-black rounded-lg overflow-hidden h-full">
               <video
                 ref={videoRef}
@@ -115,8 +124,8 @@ export function VideoPage() {
             </div>
           </div>
 
-          {/* Transcript - 2/3 (8 columns) */}
-          <div className="col-span-8 min-h-0 h-full">
+          {/* Transcript - 2/3 of left column height */}
+          <div className="flex-1 min-h-0">
             {isLoadingWords ? (
               <div className="bg-white border border-zinc-200 rounded-lg h-full flex items-center justify-center">
                 <div className="text-center">
@@ -137,18 +146,22 @@ export function VideoPage() {
                 words={words?.words || []}
                 currentTime={currentTime}
                 onSeekToTime={handleSeekToTime}
+                onCreateNoteFromSelection={handleCreateNoteFromSelection}
               />
             )}
           </div>
         </div>
 
-        {/* Bottom section - Notes full width */}
-        <div className="flex-1">
+        {/* Right column - Notes full width */}
+        <div className="w-2/3 min-h-0">
           <VideoNoteTaker
             videoId={selectedJob.video?.id || 0}
             currentTime={currentTime}
             onSeekToTime={handleSeekToTime}
             videoRef={videoRef}
+            selectionData={selectionData}
+            onClearSelection={handleClearSelection}
+            words={words?.words || []}
           />
         </div>
       </main>
