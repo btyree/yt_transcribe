@@ -144,10 +144,18 @@ async def create_transcription_job(
     await db.commit()
     await db.refresh(job)
 
+    # Load the video relationship for the response
+    result = await db.execute(
+        select(TranscriptionJob)
+        .options(selectinload(TranscriptionJob.video))
+        .where(TranscriptionJob.id == job.id)
+    )
+    job_with_video = result.scalar_one()
+
     # Start background transcription
     background_tasks.add_task(background_transcribe, job.id)
 
-    return job
+    return job_with_video
 
 
 @router.get("/jobs/{job_id}", response_model=TranscriptionJobResponse)
