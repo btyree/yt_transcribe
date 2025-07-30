@@ -11,7 +11,7 @@ export const useTranscriptionJobs = () => {
     refetchOnWindowFocus: true, // Refetch when switching back to the tab/window
     refetchInterval: (data) => {
       // Refetch every 5 seconds if there are any jobs that are not completed/failed/cancelled
-      if (data?.some(job => 
+      if (data && Array.isArray(data) && data.some(job => 
         job.status === 'pending' || 
         job.status === 'downloading' || 
         job.status === 'processing'
