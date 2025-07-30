@@ -7,6 +7,7 @@ import {
   SpeakerXMarkIcon,
   XMarkIcon 
 } from '@heroicons/react/16/solid';
+import { API_BASE_URL } from '../constants/api';
 import type { TranscriptionJob, WordTimestamp } from '../types/api';
 
 interface VideoPlayerProps {
@@ -183,7 +184,7 @@ export function VideoPlayer({ job, words, onClose }: VideoPlayerProps) {
                 preload="metadata"
               >
                 <source 
-                  src={`http://localhost:8000/api/videos/${job.video.id}/file`}
+                  src={`${API_BASE_URL}/api/v1/videos/${job.video.id}/file`}
                   type="video/mp4"
                 />
                 Your browser does not support the video tag.
