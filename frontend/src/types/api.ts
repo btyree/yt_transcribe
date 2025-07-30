@@ -26,7 +26,7 @@ export interface ChannelValidationResponse {
 export interface Video {
   id: number;
   youtube_id: string;
-  channel_id: number;
+  channel_id: number | null;
   title: string;
   description?: string;
   url: string;

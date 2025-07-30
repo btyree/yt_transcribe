@@ -6,6 +6,7 @@ import { Heading } from './catalyst/heading';
 import { Badge } from './catalyst/badge';
 import { DocumentTextIcon, EyeIcon, CalendarIcon } from '@heroicons/react/16/solid';
 import { transcriptionJobsService } from '../services/transcription-jobs';
+import { videosService } from '../services/videos';
 import { useTranscriptionJobs } from '../hooks/useTranscriptionJobs';
 import type { Video, TranscriptionJob } from '../types/api';
 
@@ -51,20 +52,6 @@ export function SingleVideoForm({ onVideoTranscribed }: SingleVideoFormProps) {
     });
   };
 
-  const extractVideoId = (url: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
-    ];
-    
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
-    return null;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,34 +61,13 @@ export function SingleVideoForm({ onVideoTranscribed }: SingleVideoFormProps) {
     setTranscriptionJob(null);
 
     try {
-      const videoId = extractVideoId(videoUrl);
-      if (!videoId) {
-        setError('Please enter a valid YouTube URL');
-        return;
-      }
-
-      // For now, we'll create a mock video object since we don't have a single video endpoint
-      // In a real implementation, you'd want to add an API endpoint to extract video metadata
-      const mockVideo: Video = {
-        id: Date.now(), // temporary ID
-        youtube_id: videoId,
-        channel_id: 0, // we don't have channel context
-        title: 'YouTube Video',
-        description: '',
-        url: videoUrl,
-        thumbnail_url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-        duration_seconds: 0,
-        view_count: 0,
-        published_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      setExtractedVideo(mockVideo);
+      // Create video record from URL
+      const video = await videosService.createVideoFromUrl(videoUrl);
+      setExtractedVideo(video);
 
       // Create transcription job (automatically starts)
       const job = await transcriptionJobsService.createTranscriptionJob({
-        video_id: mockVideo.id,
+        video_id: video.id,
         format: 'txt'
       });
 

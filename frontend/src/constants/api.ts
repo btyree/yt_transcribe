@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   VIDEOS_BY_CHANNEL: (channelId: number) =>
     `/api/v1/videos/channel/${channelId}`,
   DISCOVER_VIDEOS: '/api/v1/videos/discover',
+  CREATE_VIDEO_FROM_URL: '/api/v1/videos/create-from-url',
 
   // Transcription Jobs
   TRANSCRIPTION_JOBS: '/api/v1/transcription/jobs',
