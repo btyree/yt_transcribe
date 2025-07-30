@@ -89,8 +89,11 @@ def background_transcribe(job_id: int) -> None:
     import asyncio
     from app.db.base import AsyncSessionLocal
     
+    print(f"Starting background transcription for job {job_id}")
+    
     async def process_job():
         try:
+            print(f"Creating database session for job {job_id}")
             # Create a new database session for the background task
             async with AsyncSessionLocal() as db:
                 # Get job and video
@@ -102,15 +105,25 @@ def background_transcribe(job_id: int) -> None:
                 job = result.scalar_one_or_none()
 
                 if not job:
+                    print(f"Job {job_id} not found")
                     return
-
+                
+                print(f"Found job {job_id}, video: {job.video.title if job.video else 'No video'}")
                 await transcription_service.process_transcription_job(job, job.video, db)
+                print(f"Transcription completed for job {job_id}")
 
         except Exception as e:
             print(f"Background transcription failed for job {job_id}: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Run the async function synchronously
-    asyncio.run(process_job())
+    try:
+        asyncio.run(process_job())
+    except Exception as e:
+        print(f"Failed to run background task for job {job_id}: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @router.post("/jobs", response_model=TranscriptionJobResponse)
