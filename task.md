@@ -1,5 +1,5 @@
 # Fix transcribe button not working
-**Status:** InProgress
+**Status:** AwaitingCommit
 **Agent PID:** 69086
 
 ## Original Todo
@@ -18,7 +18,7 @@ We need to fix the transcribe button in SingleVideoForm.tsx that currently fails
 - [x] Handle standalone videos without channels - Allow videos to exist without being associated with tracked channels (channel_id can be null)
 - [x] Ensure backend environment setup - Verify .env file exists and dependencies are installed (backend/.env, uv sync)
 - [x] Add error handling for video creation failures - Improve error messages when video extraction or transcription fails
-- [ ] Test complete flow - Verify single video URL → real video record → transcription job → completion
+- [x] Test complete flow - Verify single video URL → real video record → transcription job → completion
 
 ## Notes
 [Implementation notes]
