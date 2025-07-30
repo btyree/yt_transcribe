@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useTranscriptionJobs, useCancelTranscriptionJob, useRetryTranscriptionJob } from '../hooks/useTranscriptionJobs';
 import { useChannels } from '../hooks/useChannels';
+import { useWordTimestamps } from '../hooks/useWordTimestamps';
 import { Input } from './catalyst/input';
 import { Button } from './catalyst/button';
 import { Badge } from './catalyst/badge';
 import { Select } from './catalyst/select';
+import { VideoPlayer } from './VideoPlayer';
 import { 
   MagnifyingGlassIcon, 
   DocumentTextIcon, 
@@ -16,7 +18,8 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
   TrashIcon,
-  ArrowUturnLeftIcon
+  ArrowUturnLeftIcon,
+  PlayIcon
 } from '@heroicons/react/16/solid';
 import type { TranscriptionJob } from '../types/api';
 
@@ -28,6 +31,13 @@ export function TranscribedVideos() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
+  const [selectedJobForPlayer, setSelectedJobForPlayer] = useState<TranscriptionJob | null>(null);
+  
+  // Fetch word timestamps when a video is selected for playback
+  const { data: wordTimestamps, isLoading: isLoadingWords } = useWordTimestamps(
+    selectedJobForPlayer?.id || 0,
+    selectedJobForPlayer?.status === 'completed'
+  );
 
   const allJobs = transcriptionJobs || [];
 
@@ -363,14 +373,24 @@ export function TranscribedVideos() {
                       
                       <div className="flex items-center space-x-3">
                         {job.status === 'completed' && (
-                          <Button
-                            onClick={() => handleDownload(job)}
-                            color="zinc"
-                            className="text-sm px-3 py-1"
-                          >
-                            <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
-                            Download
-                          </Button>
+                          <>
+                            <Button
+                              onClick={() => setSelectedJobForPlayer(job)}
+                              color="blue"
+                              className="text-sm px-3 py-1"
+                            >
+                              <PlayIcon className="w-4 h-4 mr-2" />
+                              Watch with Transcript
+                            </Button>
+                            <Button
+                              onClick={() => handleDownload(job)}
+                              color="zinc"
+                              className="text-sm px-3 py-1"
+                            >
+                              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                              Download
+                            </Button>
+                          </>
                         )}
                         
                         {job.status === 'pending' && (
@@ -416,6 +436,45 @@ export function TranscribedVideos() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Video Player Modal */}
+      {selectedJobForPlayer && (
+        <>
+          {isLoadingWords ? (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-8">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <span className="text-zinc-700">Loading word timestamps...</span>
+                </div>
+              </div>
+            </div>
+          ) : wordTimestamps ? (
+            <VideoPlayer
+              job={selectedJobForPlayer}
+              words={wordTimestamps.words}
+              onClose={() => setSelectedJobForPlayer(null)}
+            />
+          ) : (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-8 max-w-md">
+                <h3 className="text-lg font-medium text-zinc-900 mb-2">
+                  Unable to load video
+                </h3>
+                <p className="text-zinc-600 mb-4">
+                  Word-level timestamps are not available for this transcription job.
+                </p>
+                <Button
+                  onClick={() => setSelectedJobForPlayer(null)}
+                  color="zinc"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

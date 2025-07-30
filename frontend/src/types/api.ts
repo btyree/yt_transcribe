@@ -75,3 +75,20 @@ export interface HealthResponse {
     has_deepgram_api_key: boolean;
   };
 }
+
+export interface WordTimestamp {
+  word: string;
+  start: number;
+  end: number;
+  confidence: number;
+  punctuated_word?: string;
+  speaker?: number;
+}
+
+export interface WordTimestampsResponse {
+  job_id: number;
+  video_id: number;
+  words: WordTimestamp[];
+  total_words: number;
+  duration?: number;
+}

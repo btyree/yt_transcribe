@@ -1,6 +1,8 @@
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -98,3 +100,20 @@ async def create_video_from_url(
         raise HTTPException(
             status_code=500, detail=f"Failed to create video from URL: {str(e)}"
         )
+
+
+@router.get("/{video_id}/file")
+async def serve_video_file(video_id: int, db: AsyncSession = Depends(get_db)):
+    """Serve the downloaded video file for playback."""
+    video = await video_service.get_video_by_id(db, video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    
+    if not video.video_file_path or not Path(video.video_file_path).exists():
+        raise HTTPException(status_code=404, detail="Video file not found")
+    
+    return FileResponse(
+        path=video.video_file_path,
+        media_type="video/mp4",
+        filename=f"{video.youtube_id}.mp4"
+    )

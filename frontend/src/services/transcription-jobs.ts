@@ -1,6 +1,6 @@
 import { api } from './api';
 import { API_ENDPOINTS } from '../constants/api';
-import { type TranscriptionJob } from '../types/api';
+import { type TranscriptionJob, type WordTimestampsResponse } from '../types/api';
 
 export interface CreateTranscriptionJobRequest {
   video_id: number;
@@ -52,6 +52,16 @@ export const transcriptionJobsService = {
   ): Promise<TranscriptionJob> => {
     const response = await api.post<TranscriptionJob>(
       `${API_ENDPOINTS.TRANSCRIPTION_JOB_BY_ID(id)}/retry`,
+    );
+    return response.data;
+  },
+
+  // Get word-level timestamps for a transcription job
+  getWordTimestamps: async (
+    jobId: number,
+  ): Promise<WordTimestampsResponse> => {
+    const response = await api.get<WordTimestampsResponse>(
+      `${API_ENDPOINTS.TRANSCRIPTION_JOB_BY_ID(jobId)}/words`,
     );
     return response.data;
   },

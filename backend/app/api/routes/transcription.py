@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -82,6 +83,27 @@ class VideoTranscriptionInfo(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class WordTimestamp(BaseModel):
+    """Word-level timestamp data."""
+    
+    word: str
+    start: float
+    end: float
+    confidence: float
+    punctuated_word: Optional[str] = None
+    speaker: Optional[int] = None
+
+
+class WordTimestampsResponse(BaseModel):
+    """Response model for word-level timestamps."""
+    
+    job_id: int
+    video_id: int
+    words: list[WordTimestamp]
+    total_words: int
+    duration: Optional[float] = None
 
 
 def background_transcribe(job_id: int) -> None:
@@ -312,3 +334,78 @@ async def get_video_transcription_info(
         raise HTTPException(status_code=404, detail="Video not found")
 
     return video
+
+
+@router.get("/jobs/{job_id}/words", response_model=WordTimestampsResponse)
+async def get_job_word_timestamps(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get word-level timestamps from a completed transcription job."""
+    result = await db.execute(
+        select(TranscriptionJob).where(TranscriptionJob.id == job_id)
+    )
+    job = result.scalar_one_or_none()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Transcription job not found")
+    
+    if job.status != JobStatus.COMPLETED:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Job status is {job.status}. Word timestamps only available for completed jobs."
+        )
+    
+    if not job.deepgram_response:
+        raise HTTPException(
+            status_code=404, 
+            detail="No Deepgram response data found for this job"
+        )
+    
+    try:
+        # Parse the stored Deepgram response
+        deepgram_data = json.loads(job.deepgram_response)
+        
+        # Extract word-level timestamps
+        words = []
+        duration = None
+        
+        if "metadata" in deepgram_data:
+            duration = deepgram_data["metadata"].get("duration")
+        
+        if (
+            "results" in deepgram_data
+            and deepgram_data["results"].get("channels")
+            and deepgram_data["results"]["channels"][0].get("alternatives")
+        ):
+            alternatives = deepgram_data["results"]["channels"][0]["alternatives"][0]
+            
+            if "words" in alternatives:
+                for word_data in alternatives["words"]:
+                    words.append(WordTimestamp(
+                        word=word_data.get("word", ""),
+                        start=word_data.get("start", 0.0),
+                        end=word_data.get("end", 0.0),
+                        confidence=word_data.get("confidence", 0.0),
+                        punctuated_word=word_data.get("punctuated_word"),
+                        speaker=word_data.get("speaker")
+                    ))
+        
+        return WordTimestampsResponse(
+            job_id=job.id,
+            video_id=job.video_id,
+            words=words,
+            total_words=len(words),
+            duration=duration
+        )
+        
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to parse Deepgram response data"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to extract word timestamps: {str(e)}"
+        )
