@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { XMarkIcon } from '@heroicons/react/16/solid';
 import { useNotes } from '../hooks/useNotes';
 import type { TranscriptionJob, WordTimestamp } from '../types/api';
 
@@ -16,6 +17,7 @@ export function TranscriptWithHighlights({
   onSeekToTime 
 }: TranscriptWithHighlightsProps) {
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const selectionDialogRef = useRef<HTMLDivElement>(null);
   const [selectedText, setSelectedText] = useState('');
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
@@ -67,6 +69,26 @@ export function TranscriptWithHighlights({
     }
   }, [activeWordIndex]);
 
+  // Click outside to dismiss selection dialog
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectedText && selectionDialogRef.current && !selectionDialogRef.current.contains(event.target as Node)) {
+        dismissSelection();
+      }
+    };
+
+    if (selectedText) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [selectedText]);
+
+  const dismissSelection = () => {
+    setSelectedText('');
+    setSelectionRange(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
   const handleTextSelection = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
@@ -117,9 +139,7 @@ export function TranscriptWithHighlights({
       });
       
       // Clear selection
-      setSelectedText('');
-      setSelectionRange(null);
-      window.getSelection()?.removeAllRanges();
+      dismissSelection();
     } catch (error) {
       console.error('Failed to create note from selection:', error);
     }
@@ -146,11 +166,18 @@ export function TranscriptWithHighlights({
   // Check if a word is part of a note's selected text
   const isWordInNoteSelection = (word: WordTimestamp) => {
     if (!notes) return false;
-    return notes.some(note => 
-      note.selected_text && 
-      note.start_time && note.end_time &&
-      word.start >= note.start_time && word.end <= note.end_time
-    );
+    return notes.some(note => {
+      // For notes with selected text (text selection notes)
+      if (note.selected_text && note.start_time && note.end_time) {
+        return word.start >= note.start_time && word.end <= note.end_time;
+      }
+      // For notes without selected text (single word/time notes)
+      if (note.start_time && !note.end_time) {
+        // Highlight the exact word that contains the note's timestamp
+        return note.start_time >= word.start && note.start_time <= word.end;
+      }
+      return false;
+    });
   };
 
   return (
@@ -165,18 +192,27 @@ export function TranscriptWithHighlights({
 
       {/* Selection Actions */}
       {selectedText && (
-        <div className="p-3 border-b border-zinc-200 bg-blue-50 flex-shrink-0">
+        <div ref={selectionDialogRef} className="p-3 border-b border-zinc-200 bg-blue-50 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 mr-3">
               <p className="text-sm font-medium text-blue-900">Text Selected</p>
               <p className="text-xs text-blue-700 truncate">"{selectedText}"</p>
             </div>
-            <button
-              onClick={handleCreateNoteFromSelection}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-            >
-              Create Note
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleCreateNoteFromSelection}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+              >
+                Create Note
+              </button>
+              <button
+                onClick={dismissSelection}
+                className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded transition-colors"
+                title="Dismiss selection"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -224,24 +260,6 @@ export function TranscriptWithHighlights({
         )}
       </div>
 
-      {/* Notes Indicators */}
-      {notes && notes.length > 0 && (
-        <div className="p-3 border-t border-zinc-200 bg-zinc-50">
-          <p className="text-xs text-zinc-600 mb-2">Notes in this transcript:</p>
-          <div className="flex flex-wrap gap-1">
-            {notes.map((note) => (
-              <button
-                key={note.id}
-                onClick={() => onSeekToTime(note.start_time)}
-                className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded hover:bg-blue-200 transition-colors"
-                title={note.content}
-              >
-                {formatTime(note.start_time)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

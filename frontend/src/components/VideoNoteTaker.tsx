@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, ClockIcon } from '@heroicons/react/16/solid';
+import { useState, useRef, useEffect } from 'react';
+import { PlusIcon, PencilIcon, TrashIcon, ClockIcon, XMarkIcon } from '@heroicons/react/16/solid';
 import { Button } from './catalyst/button';
 import { useNotes } from '../hooks/useNotes';
 import type { Note } from '../types/api';
@@ -15,8 +15,23 @@ export function VideoNoteTaker({ videoId, currentTime, onSeekToTime, videoRef }:
   const [isCreating, setIsCreating] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [noteContent, setNoteContent] = useState('');
+  const noteFormRef = useRef<HTMLDivElement>(null);
   
   const { data: notes, createNote, updateNote, deleteNote } = useNotes(videoId);
+
+  // Click outside to dismiss note form
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if ((isCreating || editingNote) && noteFormRef.current && !noteFormRef.current.contains(event.target as Node)) {
+        cancelEditing();
+      }
+    };
+
+    if (isCreating || editingNote) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isCreating, editingNote]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -106,11 +121,20 @@ export function VideoNoteTaker({ videoId, currentTime, onSeekToTime, videoRef }:
 
       {/* Note Creation/Editing Form */}
       {(isCreating || editingNote) && (
-        <div className="p-4 border-b border-zinc-200 bg-zinc-50 flex-shrink-0">
+        <div ref={noteFormRef} className="p-4 border-b border-zinc-200 bg-zinc-50 flex-shrink-0">
           <div className="mb-3">
-            <div className="flex items-center text-xs text-zinc-600 mb-2">
-              <ClockIcon className="w-3 h-3 mr-1" />
-              {editingNote ? formatTime(editingNote.start_time) : formatTime(currentTime)}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center text-xs text-zinc-600">
+                <ClockIcon className="w-3 h-3 mr-1" />
+                {editingNote ? formatTime(editingNote.start_time) : formatTime(currentTime)}
+              </div>
+              <button
+                onClick={cancelEditing}
+                className="p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-200 rounded transition-colors"
+                title="Close"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
             </div>
             <textarea
               value={noteContent}
