@@ -15,7 +15,7 @@ class VideoResponse(BaseModel):
 
     id: int
     youtube_id: str
-    channel_id: int
+    channel_id: int | None
     title: str
     description: str | None = None
     url: str
@@ -35,6 +35,12 @@ class VideoDiscoveryRequest(BaseModel):
 
     channel_youtube_id: str
     max_results: int = 50
+
+
+class CreateVideoFromUrlRequest(BaseModel):
+    """Request model for creating video from URL."""
+
+    url: str
 
 
 @router.get("/", response_model=list[VideoResponse])
@@ -69,10 +75,26 @@ async def discover_videos(
         discovered_videos = await video_service.discover_videos_for_channel(
             db, request.channel_youtube_id, request.max_results
         )
-        return [VideoResponse.from_orm(video) for video in discovered_videos]
+        return [VideoResponse.model_validate(video) for video in discovered_videos]
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to discover videos: {str(e)}"
+        )
+
+
+@router.post("/create-from-url", response_model=VideoResponse)
+async def create_video_from_url(
+    request: CreateVideoFromUrlRequest, db: AsyncSession = Depends(get_db)
+):
+    """Create a video record from a YouTube URL."""
+    try:
+        video = await video_service.create_video_from_url(db, request.url)
+        return VideoResponse.model_validate(video)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create video from URL: {str(e)}"
         )

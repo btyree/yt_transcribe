@@ -144,6 +144,23 @@ class ChannelService:
             db: Database session
             channel: Channel to delete
         """
+        from app.models import Video, TranscriptionJob
+        
+        # Delete all transcription jobs for videos in this channel
+        transcription_jobs_result = await db.execute(
+            select(TranscriptionJob).join(Video).where(Video.channel_id == channel.id)
+        )
+        transcription_jobs = transcription_jobs_result.scalars().all()
+        for job in transcription_jobs:
+            await db.delete(job)
+        
+        # Delete all videos in this channel
+        videos_result = await db.execute(select(Video).where(Video.channel_id == channel.id))
+        videos = videos_result.scalars().all()
+        for video in videos:
+            await db.delete(video)
+        
+        # Finally delete the channel
         await db.delete(channel)
         await db.commit()
 

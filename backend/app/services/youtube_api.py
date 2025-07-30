@@ -121,30 +121,80 @@ class YouTubeAPIService:
             Channel information dict or None if not found
         """
         try:
-            # First try to search for the channel by name
-            search_request = self.youtube.search().list(
-                part="snippet",
-                q=f"@{username}",
-                type="channel",
-                maxResults=1
-            )
-            search_response = search_request.execute()
-            logger.debug(f"YouTube search response for @{username}: {search_response}")
-
-            if search_response.get("items"):
-                channel_id = search_response["items"][0]["snippet"]["channelId"]
-                # Now get the full channel info
-                return await self.get_channel_info(channel_id)
+            # First try the new forHandle parameter (added January 2024)
+            # This is the proper way to look up channels by @handle
+            handle_variations = [
+                f"@{username}",  # With @ prefix
+                username,        # Without @ prefix
+                f"@{username.lower()}",  # Lowercase with @
+                username.lower()         # Lowercase without @
+            ]
             
-            # Fallback to the old forUsername method
-            request = self.youtube.channels().list(
-                part="snippet,statistics,contentDetails", forUsername=username
-            )
-            response = request.execute()
-            logger.debug(f"YouTube API response for username {username}: {response}")
+            for handle in handle_variations:
+                try:
+                    request = self.youtube.channels().list(
+                        part="snippet,statistics,contentDetails", 
+                        forHandle=handle
+                    )
+                    response = request.execute()
+                    logger.debug(f"YouTube API forHandle response for '{handle}': {response}")
 
-            if response.get("items"):
-                return response["items"][0]
+                    if response.get("items"):
+                        return response["items"][0]
+                except HttpError as handle_error:
+                    # Log but continue to next variation
+                    logger.debug(f"forHandle failed for '{handle}': {handle_error}")
+                    continue
+            
+            # Fallback: try the legacy forUsername method (for old-style usernames)
+            try:
+                request = self.youtube.channels().list(
+                    part="snippet,statistics,contentDetails", forUsername=username
+                )
+                response = request.execute()
+                logger.debug(f"YouTube API forUsername response for {username}: {response}")
+
+                if response.get("items"):
+                    return response["items"][0]
+            except HttpError as username_error:
+                logger.debug(f"forUsername failed for '{username}': {username_error}")
+            
+            # Final fallback: search API with exact matching
+            search_strategies = [
+                f"@{username}",
+                f"@{username.lower()}",
+                f'"{username}"',
+                username
+            ]
+            
+            for search_query in search_strategies:
+                try:
+                    search_request = self.youtube.search().list(
+                        part="snippet",
+                        q=search_query,
+                        type="channel",
+                        maxResults=10
+                    )
+                    search_response = search_request.execute()
+                    logger.debug(f"YouTube search response for '{search_query}': {search_response}")
+
+                    # Look for exact matches in the results
+                    for item in search_response.get("items", []):
+                        snippet = item.get("snippet", {})
+                        channel_title = snippet.get("title", "").lower()
+                        custom_url = snippet.get("customUrl", "").lower()
+                        
+                        # Check if this is an exact match (case-insensitive)
+                        if (channel_title == username.lower() or 
+                            custom_url == f"@{username.lower()}" or
+                            custom_url == username.lower()):
+                            
+                            channel_id = snippet["channelId"]
+                            return await self.get_channel_info(channel_id)
+                except HttpError as search_error:
+                    logger.debug(f"Search failed for '{search_query}': {search_error}")
+                    continue
+            
             return None
         except HttpError as e:
             self._handle_http_error(e, "fetching channel by username")

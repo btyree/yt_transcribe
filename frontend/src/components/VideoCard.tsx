@@ -1,10 +1,29 @@
-import type { Video } from '../types/api';
+import { useState } from 'react';
+import type { Video, TranscriptionJob } from '../types/api';
+import { useTranscriptionJobs } from '../hooks/useTranscriptionJobs';
+import { transcriptionJobsService } from '../services/transcription-jobs';
+import { Button } from './catalyst/button';
+import { Badge } from './catalyst/badge';
+import { 
+  DocumentTextIcon, 
+  PlayIcon, 
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ArrowDownTrayIcon
+} from '@heroicons/react/16/solid';
 
 export interface VideoCardProps {
   video: Video;
 }
 
 export function VideoCard({ video }: VideoCardProps) {
+  const { data: transcriptionJobs, refetch } = useTranscriptionJobs();
+  const [isStartingTranscription, setIsStartingTranscription] = useState(false);
+  
+  // Find transcription jobs for this video
+  const videoTranscriptionJobs = transcriptionJobs?.filter(job => job.video_id === video.id) || [];
+  const latestJob = videoTranscriptionJobs[0]; // Assuming jobs are ordered by creation date
   const formatDuration = (seconds?: number) => {
     if (!seconds) return '';
     const hours = Math.floor(seconds / 3600);
@@ -36,6 +55,86 @@ export function VideoCard({ video }: VideoCardProps) {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleStartTranscription = async () => {
+    try {
+      setIsStartingTranscription(true);
+      await transcriptionJobsService.createTranscriptionJob({
+        video_id: video.id,
+        format: 'txt'
+      });
+      await refetch(); // Refresh transcription jobs
+    } catch (error) {
+      console.error('Failed to start transcription:', error);
+    } finally {
+      setIsStartingTranscription(false);
+    }
+  };
+
+  const handleDownloadTranscript = async (job: TranscriptionJob) => {
+    if (!job.transcript_content) return;
+    
+    // Create a clean filename with channel and video title
+    const channelName = job.video?.channel?.title || 'Unknown Channel';
+    const videoTitle = job.video?.title || video.title || 'Unknown Video';
+    const cleanChannelName = channelName.replace(/[/\\?%*:|"<>]/g, '-');
+    const cleanVideoTitle = videoTitle.replace(/[/\\?%*:|"<>]/g, '-');
+    const filename = `[${cleanChannelName}] ${cleanVideoTitle}.${job.format}`;
+    
+    const blob = new Blob([job.transcript_content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const getTranscriptionStatusBadge = () => {
+    if (!latestJob) return null;
+    
+    switch (latestJob.status) {
+      case 'completed':
+        return (
+          <Badge color="green" className="text-xs">
+            <CheckCircleIcon className="w-3 h-3 mr-1" />
+            Transcribed
+          </Badge>
+        );
+      case 'processing':
+        return (
+          <Badge color="blue" className="text-xs">
+            <ArrowPathIcon className="w-3 h-3 mr-1 animate-spin" />
+            Processing ({latestJob.progress_percentage}%)
+          </Badge>
+        );
+      case 'downloading':
+        return (
+          <Badge color="yellow" className="text-xs">
+            <ArrowPathIcon className="w-3 h-3 mr-1 animate-spin" />
+            Downloading ({latestJob.progress_percentage}%)
+          </Badge>
+        );
+      case 'pending':
+        return (
+          <Badge color="gray" className="text-xs">
+            <DocumentTextIcon className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case 'failed':
+        return (
+          <Badge color="red" className="text-xs">
+            <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -93,6 +192,48 @@ export function VideoCard({ video }: VideoCardProps) {
               {formatDate(video.published_at)}
             </div>
           )}
+        </div>
+
+        {/* Transcription Status */}
+        <div className="mt-3 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {getTranscriptionStatusBadge()}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {latestJob?.status === 'completed' && (
+              <Button
+                onClick={() => handleDownloadTranscript(latestJob)}
+                color="zinc"
+                className="text-xs px-2 py-1"
+                outline
+              >
+                <ArrowDownTrayIcon className="w-3 h-3 mr-1" />
+                Download
+              </Button>
+            )}
+            
+            {(!latestJob || latestJob.status === 'failed') && (
+              <Button
+                onClick={handleStartTranscription}
+                color="blue"
+                className="text-xs px-2 py-1"
+                disabled={isStartingTranscription}
+              >
+                {isStartingTranscription ? (
+                  <>
+                    <ArrowPathIcon className="w-3 h-3 mr-1 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="w-3 h-3 mr-1" />
+                    Transcribe
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Video URL link */}

@@ -34,4 +34,13 @@ export const videosService = {
     );
     return response.data;
   },
+
+  // Create video from URL
+  createVideoFromUrl: async (url: string): Promise<Video> => {
+    const response = await api.post<Video>(
+      API_ENDPOINTS.CREATE_VIDEO_FROM_URL,
+      { url }
+    );
+    return response.data;
+  },
 };

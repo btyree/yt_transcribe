@@ -88,8 +88,8 @@ class Video(Base):
     youtube_id: Mapped[str] = mapped_column(
         String(255), unique=True, index=True, nullable=False
     )
-    channel_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("channels.id"), nullable=False
+    channel_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("channels.id"), nullable=True
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -98,6 +98,8 @@ class Video(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
     view_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    video_file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    audio_file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
@@ -129,6 +131,8 @@ class TranscriptionJob(Base):
         SQLEnum(TranscriptFormat), default=TranscriptFormat.TXT, nullable=False
     )
     output_file_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    transcript_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    deepgram_response: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     progress_percentage: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

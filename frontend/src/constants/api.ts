@@ -20,14 +20,10 @@ export const API_ENDPOINTS = {
   VIDEOS_BY_CHANNEL: (channelId: number) =>
     `/api/v1/videos/channel/${channelId}`,
   DISCOVER_VIDEOS: '/api/v1/videos/discover',
+  CREATE_VIDEO_FROM_URL: '/api/v1/videos/create-from-url',
 
   // Transcription Jobs
-  TRANSCRIPTION_JOBS: '/api/v1/transcription-jobs',
-  TRANSCRIPTION_JOB_BY_ID: (id: number) => `/api/v1/transcription-jobs/${id}`,
-  START_TRANSCRIPTION_JOB: (id: number) =>
-    `/api/v1/transcription-jobs/${id}/start`,
-  CANCEL_TRANSCRIPTION_JOB: (id: number) =>
-    `/api/v1/transcription-jobs/${id}/cancel`,
-  TRANSCRIPTION_JOB_STATUS: (id: number) =>
-    `/api/v1/transcription-jobs/${id}/status`,
+  TRANSCRIPTION_JOBS: '/api/v1/transcription/jobs',
+  TRANSCRIPTION_JOB_BY_ID: (id: number) => `/api/v1/transcription/jobs/${id}`,
+  TRANSCRIPTION_VIDEO_INFO: (videoId: number) => `/api/v1/transcription/videos/${videoId}`,
 } as const;

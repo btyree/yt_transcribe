@@ -5,6 +5,7 @@ import { type TranscriptionJob } from '../types/api';
 export interface CreateTranscriptionJobRequest {
   video_id: number;
   format: 'txt' | 'srt' | 'vtt';
+  output_file_name?: string;
 }
 
 export const transcriptionJobsService = {
@@ -35,32 +36,22 @@ export const transcriptionJobsService = {
     return response.data;
   },
 
-  // Start transcription job
-  startTranscriptionJob: async (
-    id: number,
-  ): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>(
-      API_ENDPOINTS.START_TRANSCRIPTION_JOB(id),
-    );
-    return response.data;
-  },
-
   // Cancel transcription job
   cancelTranscriptionJob: async (
     id: number,
   ): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>(
-      API_ENDPOINTS.CANCEL_TRANSCRIPTION_JOB(id),
+    const response = await api.delete<{ message: string }>(
+      API_ENDPOINTS.TRANSCRIPTION_JOB_BY_ID(id),
     );
     return response.data;
   },
 
-  // Get transcription job status
-  getTranscriptionJobStatus: async (
+  // Retry transcription job
+  retryTranscriptionJob: async (
     id: number,
   ): Promise<TranscriptionJob> => {
-    const response = await api.get<TranscriptionJob>(
-      API_ENDPOINTS.TRANSCRIPTION_JOB_STATUS(id),
+    const response = await api.post<TranscriptionJob>(
+      `${API_ENDPOINTS.TRANSCRIPTION_JOB_BY_ID(id)}/retry`,
     );
     return response.data;
   },
