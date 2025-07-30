@@ -96,10 +96,12 @@ def background_transcribe(job_id: int) -> None:
             print(f"Creating database session for job {job_id}")
             # Create a new database session for the background task
             async with AsyncSessionLocal() as db:
-                # Get job and video
+                # Get job and video with channel relationship
                 result = await db.execute(
                     select(TranscriptionJob)
-                    .options(selectinload(TranscriptionJob.video))
+                    .options(
+                        selectinload(TranscriptionJob.video).selectinload(Video.channel)
+                    )
                     .where(TranscriptionJob.id == job_id)
                 )
                 job = result.scalar_one_or_none()
@@ -157,10 +159,12 @@ async def create_transcription_job(
     await db.commit()
     await db.refresh(job)
 
-    # Load the video relationship for the response
+    # Load the video relationship and its channel for the response
     result = await db.execute(
         select(TranscriptionJob)
-        .options(selectinload(TranscriptionJob.video))
+        .options(
+            selectinload(TranscriptionJob.video).selectinload(Video.channel)
+        )
         .where(TranscriptionJob.id == job.id)
     )
     job_with_video = result.scalar_one()
@@ -257,7 +261,9 @@ async def retry_transcription_job(
     """Retry a failed transcription job."""
     result = await db.execute(
         select(TranscriptionJob)
-        .options(selectinload(TranscriptionJob.video))
+        .options(
+            selectinload(TranscriptionJob.video).selectinload(Video.channel)
+        )
         .where(TranscriptionJob.id == job_id)
     )
     job = result.scalar_one_or_none()
