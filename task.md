@@ -16,8 +16,8 @@ We need to fix the transcribe button in SingleVideoForm.tsx that currently fails
 - [x] Create video metadata extraction endpoint - Add `POST /api/v1/videos/create-from-url` endpoint that extracts YouTube metadata and creates real video record in database (backend/app/api/routes/videos.py)
 - [x] Update SingleVideoForm to create real video records - Replace mock video creation with API call to create real video record before transcription (frontend/src/components/SingleVideoForm.tsx:85-98)
 - [x] Handle standalone videos without channels - Allow videos to exist without being associated with tracked channels (channel_id can be null)
-- [ ] Ensure backend environment setup - Verify .env file exists and dependencies are installed (backend/.env, uv sync)
-- [ ] Add error handling for video creation failures - Improve error messages when video extraction or transcription fails
+- [x] Ensure backend environment setup - Verify .env file exists and dependencies are installed (backend/.env, uv sync)
+- [x] Add error handling for video creation failures - Improve error messages when video extraction or transcription fails
 - [ ] Test complete flow - Verify single video URL → real video record → transcription job → completion
 
 ## Notes

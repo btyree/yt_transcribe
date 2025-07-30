@@ -227,18 +227,26 @@ class VideoService:
         if existing_video:
             return existing_video
         
-        # Get YouTube API service and fetch video details
-        youtube_service = get_youtube_api_service()
-        video_details = await youtube_service.get_video_details(video_id)
-        
-        if not video_details:
-            raise ValueError(f"Could not fetch details for video ID: {video_id}")
-        
-        # Parse video metadata
-        video_metadata = VideoService.parse_youtube_video_data(video_details)
-        
-        # Create video record without channel association
-        return await VideoService.create_video_from_metadata(db, video_metadata, channel_id=None)
+        try:
+            # Get YouTube API service and fetch video details
+            youtube_service = get_youtube_api_service()
+            video_details = await youtube_service.get_video_details(video_id)
+            
+            if not video_details:
+                raise ValueError(f"Could not fetch details for video ID: {video_id}. Video may be private, deleted, or unavailable.")
+            
+            # Parse video metadata
+            video_metadata = VideoService.parse_youtube_video_data(video_details)
+            
+            # Create video record without channel association
+            return await VideoService.create_video_from_metadata(db, video_metadata, channel_id=None)
+            
+        except Exception as e:
+            # Re-raise ValueError as-is, wrap other exceptions
+            if isinstance(e, ValueError):
+                raise
+            else:
+                raise ValueError(f"Failed to create video from URL {video_url}: {str(e)}")
 
     @staticmethod
     async def discover_videos_for_channel(

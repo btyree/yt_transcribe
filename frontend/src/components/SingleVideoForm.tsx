@@ -79,7 +79,30 @@ export function SingleVideoForm({ onVideoTranscribed }: SingleVideoFormProps) {
       }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process video');
+      console.error('Error processing video:', err);
+      
+      // Provide specific error messages based on the error type
+      let errorMessage = 'Failed to process video';
+      
+      if (err instanceof Error) {
+        const message = err.message.toLowerCase();
+        
+        if (message.includes('could not extract video id')) {
+          errorMessage = 'Invalid YouTube URL. Please check the URL and try again.';
+        } else if (message.includes('could not fetch details')) {
+          errorMessage = 'Video not found or is private. Please check if the video exists and is publicly accessible.';
+        } else if (message.includes('network') || message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (message.includes('api key') || message.includes('quota')) {
+          errorMessage = 'YouTube API error. Please try again later.';
+        } else if (message.includes('transcription')) {
+          errorMessage = 'Failed to start transcription. Please try again.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
