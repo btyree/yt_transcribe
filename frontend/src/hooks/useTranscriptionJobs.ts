@@ -8,6 +8,18 @@ export const useTranscriptionJobs = () => {
   return useQuery({
     queryKey: ['transcription-jobs'],
     queryFn: transcriptionJobsService.getTranscriptionJobs,
+    refetchOnWindowFocus: true, // Refetch when switching back to the tab/window
+    refetchInterval: (data) => {
+      // Refetch every 5 seconds if there are any jobs that are not completed/failed/cancelled
+      if (data?.some(job => 
+        job.status === 'pending' || 
+        job.status === 'downloading' || 
+        job.status === 'processing'
+      )) {
+        return 5000; // 5 seconds
+      }
+      return false; // Don't poll if all jobs are done
+    },
   });
 };
 

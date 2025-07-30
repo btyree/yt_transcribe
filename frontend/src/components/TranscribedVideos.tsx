@@ -21,7 +21,7 @@ import {
 import type { TranscriptionJob } from '../types/api';
 
 export function TranscribedVideos() {
-  const { data: transcriptionJobs, isLoading, error } = useTranscriptionJobs();
+  const { data: transcriptionJobs, isLoading, error, refetch } = useTranscriptionJobs();
   const { data: channels } = useChannels();
   const cancelJob = useCancelTranscriptionJob();
   const retryJob = useRetryTranscriptionJob();
@@ -226,7 +226,7 @@ export function TranscribedVideos() {
 
       {/* Filters */}
       <div className="grid grid-cols-12 gap-4 mb-6">
-        <div className="col-span-6">
+        <div className="col-span-5">
           <div className="relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <Input
@@ -264,6 +264,17 @@ export function TranscribedVideos() {
             <option value="failed">Failed</option>
             <option value="cancelled">Cancelled</option>
           </Select>
+        </div>
+        <div className="col-span-1">
+          <Button
+            onClick={() => refetch()}
+            color="zinc"
+            className="h-full w-full"
+            outline
+            title="Refresh transcription jobs"
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
