@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import channels, health, transcription, videos
+from app.api.routes import channels, health, notes, transcription, videos
 from app.core.config import settings
 
 # Create FastAPI instance
@@ -27,3 +27,4 @@ app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(channels.router, prefix="/api/v1/channels", tags=["channels"])
 app.include_router(videos.router, prefix="/api/v1/videos", tags=["videos"])
 app.include_router(transcription.router, prefix="/api/v1", tags=["transcription"])
+app.include_router(notes.router, prefix="/api/v1", tags=["notes"])

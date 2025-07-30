@@ -92,3 +92,29 @@ export interface WordTimestampsResponse {
   total_words: number;
   duration?: number;
 }
+
+// Notes and Highlights types
+export interface Note {
+  id: number;
+  video_id: number;
+  start_time: number;
+  end_time?: number;
+  content: string;
+  selected_text?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NoteCreate {
+  start_time: number;
+  end_time?: number;
+  content: string;
+  selected_text?: string;
+}
+
+export interface NoteUpdate {
+  start_time?: number;
+  end_time?: number;
+  content?: string;
+  selected_text?: string;
+}

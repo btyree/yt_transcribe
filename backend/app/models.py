@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Float
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -110,6 +110,9 @@ class Video(Base):
     transcription_jobs: Mapped[list[TranscriptionJob]] = relationship(
         "TranscriptionJob", back_populates="video"
     )
+    notes: Mapped[list[Note]] = relationship(
+        "Note", back_populates="video", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Video(id={self.id}, title='{self.title}')>"
@@ -154,3 +157,30 @@ class TranscriptionJob(Base):
 
     def __repr__(self) -> str:
         return f"<TranscriptionJob(id={self.id}, status='{self.status}')>"
+
+
+class Note(Base):
+    """Video note model for timestamp-based annotations."""
+
+    __tablename__ = "notes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    video_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("videos.id"), nullable=False, index=True
+    )
+    start_time: Mapped[float] = mapped_column(Float, nullable=False)  # Timestamp in seconds
+    end_time: Mapped[float | None] = mapped_column(Float, nullable=True)  # Optional end time
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    selected_text: Mapped[str | None] = mapped_column(Text, nullable=True)  # Highlighted text from transcript
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    # Relationships
+    video: Mapped[Video] = relationship("Video", back_populates="notes")
+
+    def __repr__(self) -> str:
+        return f"<Note(id={self.id}, video_id={self.video_id}, start_time={self.start_time})>"
+
+
