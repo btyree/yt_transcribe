@@ -4,6 +4,7 @@ Video domain services for YouTube video metadata parsing and discovery.
 import re
 from datetime import datetime
 from typing import Any, Optional
+from urllib.parse import parse_qs, urlparse
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,29 @@ from app.services.youtube_api import get_youtube_api_service
 
 class VideoService:
     """Service for managing YouTube video metadata parsing and discovery."""
+
+    @staticmethod
+    def extract_video_id_from_url(url: str) -> Optional[str]:
+        """
+        Extract YouTube video ID from various URL formats.
+        
+        Args:
+            url: YouTube video URL in various formats
+            
+        Returns:
+            Video ID string or None if not found
+        """
+        patterns = [
+            r"(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)",
+            r"youtube\.com\/watch\?.*v=([^&\n?#]+)"
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, url)
+            if match and match.group(1):
+                return match.group(1)
+        
+        return None
 
     @staticmethod
     def parse_duration_string(duration: str) -> Optional[int]:
@@ -141,7 +165,7 @@ class VideoService:
 
     @staticmethod
     async def create_video_from_metadata(
-        db: AsyncSession, video_metadata: VideoMetadata, channel_id: int
+        db: AsyncSession, video_metadata: VideoMetadata, channel_id: Optional[int] = None
     ) -> Video:
         """
         Create a new video record from YouTube metadata.
@@ -149,7 +173,7 @@ class VideoService:
         Args:
             db: Database session
             video_metadata: Parsed video metadata from YouTube API
-            channel_id: Database ID of the channel this video belongs to
+            channel_id: Database ID of the channel this video belongs to (optional for standalone videos)
 
         Returns:
             Created Video instance
@@ -177,6 +201,44 @@ class VideoService:
         await db.commit()
         await db.refresh(video)
         return video
+
+    @staticmethod
+    async def create_video_from_url(db: AsyncSession, video_url: str) -> Video:
+        """
+        Create a video record from a YouTube URL by extracting metadata.
+        
+        Args:
+            db: Database session
+            video_url: YouTube video URL
+            
+        Returns:
+            Created Video instance
+            
+        Raises:
+            ValueError: If video ID cannot be extracted or video details cannot be fetched
+        """
+        # Extract video ID from URL
+        video_id = VideoService.extract_video_id_from_url(video_url)
+        if not video_id:
+            raise ValueError(f"Could not extract video ID from URL: {video_url}")
+        
+        # Check if video already exists
+        existing_video = await VideoService.get_video_by_youtube_id(db, video_id)
+        if existing_video:
+            return existing_video
+        
+        # Get YouTube API service and fetch video details
+        youtube_service = get_youtube_api_service()
+        video_details = await youtube_service.get_video_details(video_id)
+        
+        if not video_details:
+            raise ValueError(f"Could not fetch details for video ID: {video_id}")
+        
+        # Parse video metadata
+        video_metadata = VideoService.parse_youtube_video_data(video_details)
+        
+        # Create video record without channel association
+        return await VideoService.create_video_from_metadata(db, video_metadata, channel_id=None)
 
     @staticmethod
     async def discover_videos_for_channel(
@@ -247,7 +309,7 @@ class VideoService:
             # Create video record
             try:
                 video = await VideoService.create_video_from_metadata(
-                    db, video_metadata, channel.id
+                    db, video_metadata, channel_id=channel.id
                 )
                 discovered_videos.append(video)
             except Exception as e:
