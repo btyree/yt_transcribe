@@ -37,23 +37,23 @@ function App() {
               <Button
                 onClick={() => setActiveTab('channels')}
                 color={activeTab === 'channels' ? 'dark' : 'zinc'}
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'channels' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'channels' ? 'bg-zinc-900 shadow-sm text-white' : 'bg-transparent text-zinc-900 hover:text-zinc-800'}`}
               >
                 Channels
               </Button>
               <Button
-                onClick={() => setActiveTab('transcribed')}
-                color={activeTab === 'transcribed' ? 'dark' : 'zinc'}
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'transcribed' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
-              >
-                Transcribed
-              </Button>
-              <Button
                 onClick={() => setActiveTab('single-video')}
                 color={activeTab === 'single-video' ? 'dark' : 'zinc'}
-                className={`px-4 py-2 text-sm font-medium ${activeTab === 'single-video' ? 'bg-white shadow-sm' : 'bg-transparent text-zinc-600 hover:text-zinc-900'}`}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'single-video' ? 'bg-zinc-900 shadow-sm text-white' : 'bg-transparent text-zinc-900 hover:text-zinc-800'}`}
               >
                 Single Video
+              </Button>
+              <Button
+                onClick={() => setActiveTab('transcribed')}
+                color={activeTab === 'transcribed' ? 'dark' : 'zinc'}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'transcribed' ? 'bg-zinc-900 shadow-sm text-white' : 'bg-transparent text-zinc-900 hover:text-zinc-800'}`}
+              >
+                Transcribed
               </Button>
             </div>
           </div>
@@ -97,11 +97,6 @@ function App() {
           </div>
         )}
 
-        {/* Transcribed Videos Tab */}
-        {activeTab === 'transcribed' && (
-          <TranscribedVideos />
-        )}
-
         {/* Single Video Tab */}
         {activeTab === 'single-video' && (
           <div className="max-w-2xl mx-auto">
@@ -115,6 +110,11 @@ function App() {
             </div>
             <SingleVideoForm />
           </div>
+        )}
+
+        {/* Transcribed Videos Tab */}
+        {activeTab === 'transcribed' && (
+          <TranscribedVideos />
         )}
       </main>
     </div>
